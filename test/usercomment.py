@@ -101,4 +101,3 @@ class TestUserCommentAdd(unittest.TestCase):
 
     def test_add_comment_unicode(self):
         self._test_add_comment('déjà vu')
-

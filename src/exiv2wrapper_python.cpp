@@ -165,4 +165,3 @@ BOOST_PYTHON_MODULE(libexiv2python)
     def("_unregisterXmpNs", unregisterXmpNs, args("name"));
     def("_unregisterAllXmpNs", unregisterAllXmpNs);
 }
-

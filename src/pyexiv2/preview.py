@@ -84,4 +84,3 @@ class Preview(object):
         path -- path to write the preview to (without an extension)
         """
         return self.__preview.write_to_file(path)
-

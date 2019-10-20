@@ -112,4 +112,3 @@ class TestEncodings(unittest.TestCase):
     def test_unicode_latin1_escaped(self):
         if self.encoding is not None:
             self._test_filename(u't\xe9st.jpg')
-

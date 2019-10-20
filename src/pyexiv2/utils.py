@@ -152,7 +152,7 @@ def match_string(string):
     (``[-]numerator/denominator``) and return the numerator and denominator
     as a tuple.
 
-    Args: 
+    Args:
     string -- a string representation of a rational number
 
     Return: a tuple (numerator, denominator)
@@ -226,7 +226,7 @@ class NotifyingList(list):
     """A simplistic implementation of a notifying list.
 
     Any changes to the list are notified in a synchronous way to all previously
-    registered listeners. 
+    registered listeners.
     A listener must implement the class ListenerInterface.
     """
 
@@ -600,4 +600,3 @@ class DateTimeFormatter(object):
         else:
             raise TypeError('expecting an object of type '
                             'datetime.datetime or datetime.date')
-

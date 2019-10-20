@@ -82,7 +82,7 @@ void Image::_instantiate_image()
         }
     }
 
-    catch (Exiv2::Error& err) 
+    catch (Exiv2::Error& err)
     {
         //std::cout << " Caught Exiv2 exception '" << err.code() << "'\n";
         error = err;
@@ -165,7 +165,7 @@ void Image::readMetadata()
         _dataRead = true;
     }
 
-    catch (Exiv2::Error& err) 
+    catch (Exiv2::Error& err)
     {
         //std::cout << " Caught Exiv2 exception '" << err.code() << "'\n";
         error = err;
@@ -201,7 +201,7 @@ void Image::writeMetadata()
         _image->writeMetadata();
     }
 
-    catch (Exiv2::Error& err) 
+    catch (Exiv2::Error& err)
     {
         //std::cout << "Caught Exiv2 exception '" << err.code() << "'\n";
         error = err;
@@ -451,7 +451,7 @@ boost::python::list Image::previews()
 void Image::copyMetadata(Image& other, bool exif, bool iptc, bool xmp) const
 {
     CHECK_METADATA_READ
-    if (!other._dataRead) 
+    if (!other._dataRead)
     {
 #ifdef HAVE_EXIV2_ERROR_CODE
         {
@@ -856,7 +856,7 @@ void IptcTag::setRawValues(const boost::python::list& values)
             {
                 std::string mssg("Invalid value: ");
                 mssg += value;
-                // there's no invalid value error in libexiv2, so we use 
+                // there's no invalid value error in libexiv2, so we use
                 // kerInvalidDataset wich raise a Python ValueError
                 throw Exiv2::Error(Exiv2::kerInvalidDataset, mssg);
             }
@@ -1130,7 +1130,7 @@ const boost::python::list XmpTag::getArrayValue()
 #ifdef HAVE_EXIV2_ERROR_CODE
     // We can't use &_datum->value())->value_ because value_ is private in
     // this context (change in libexiv2 0.27)
-    const Exiv2::XmpArrayValue* xav = 
+    const Exiv2::XmpArrayValue* xav =
             dynamic_cast<const Exiv2::XmpArrayValue*>(&_datum->value());
     boost::python::list rvalue;
     for(int i = 0; i < xav->count(); ++i)
@@ -1245,7 +1245,7 @@ void translateExiv2Error(Exiv2::Error const& error)
             PyErr_SetString(PyExc_KeyError, message);
             break;
         case 7:
-            // kerInvalidTag 
+            // kerInvalidTag
             // Invalid tag name or ifdId `{tag name}', ifdId {ifdId}
             // May be raised when instantiating an ExifKey from a string
             PyErr_SetString(PyExc_KeyError, message);
@@ -1256,7 +1256,7 @@ void translateExiv2Error(Exiv2::Error const& error)
             PyErr_SetString(PyExc_ValueError, message);
             break;
         case 9:
-            // kerDataSourceOpenFailed 
+            // kerDataSourceOpenFailed
             // {path}: Failed to open the data source: {strerror}
             // May be raised by readMetadata()
             PyErr_SetString(PyExc_IOError, message);
@@ -1295,7 +1295,7 @@ void translateExiv2Error(Exiv2::Error const& error)
             PyErr_SetString(PyExc_IOError, message);
             break;
         case 17:
-            // kerFileRenameFailed 
+            // kerFileRenameFailed
             // {old path}: Failed to rename file to {new path}: {strerror}
             // May be raised by writeMetadata()
             PyErr_SetString(PyExc_IOError, message);
@@ -1368,13 +1368,13 @@ void translateExiv2Error(Exiv2::Error const& error)
             PyErr_SetString(PyExc_ValueError, message);
             break;
         case 31:
-            // kerWritingImageFormatUnsupported 
+            // kerWritingImageFormatUnsupported
             // Writing to {image format} images is not supported
             // May be raised by writeMetadata() for certain image types
             PyErr_SetString(PyExc_IOError, message);
             break;
         case 32:
-            // kerInvalidSettingForImage 
+            // kerInvalidSettingForImage
             // Setting {metadata type} in {image format} images is not supported
             // May be raised when setting certain types of metadata for certain
             // image types that don't support them
@@ -1545,7 +1545,7 @@ void translateExiv2Error(Exiv2::Error const& error)
             PyErr_SetString(PyExc_RuntimeError, message);
     }
 }
-    
+
 #else
 void translateExiv2Error(Exiv2::Error const& error)
 {
@@ -1948,4 +1948,3 @@ void unregisterAllXmpNs()
 }
 
 } // End of namespace exiv2wrapper
-

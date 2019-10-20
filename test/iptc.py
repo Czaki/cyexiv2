@@ -215,5 +215,3 @@ class TestIptcTag(unittest.TestCase):
         tag = IptcTag('Iptc.Application2.ReleaseDate')
         value = [datetime.date.today(), datetime.date.today()]
         self.assertRaises(KeyError, setattr, tag, 'value', value)
-
-

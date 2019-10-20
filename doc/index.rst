@@ -6,7 +6,7 @@
 Welcome to py3exiv2's documentation!
 ====================================
 
-py3exiv2 is a `Python 3 <https://docs.python.org/3/>`_ binding to 
+py3exiv2 is a `Python 3 <https://docs.python.org/3/>`_ binding to
 `exiv2 <http://exiv2.org/>`_, the C++ library
 for manipulation of :abbr:`EXIF (EXchangeable Image File)`,
 :abbr:`IPTC (International Press Telecommunications Council)` and
@@ -21,7 +21,7 @@ py3exiv2 is distributed under the
 `GPL version 3 <http://www.gnu.org/licenses/gpl.html>`_
 license.
 
-The main content of the code was initially written by Olivier Tilloy for 
+The main content of the code was initially written by Olivier Tilloy for
 Python 2 under the name `pyexiv2 <http://tilloy.net/dev/pyexiv2/index.html>`_.
 
 **Differences between py3exiv2 (Python 3) and pyexiv2 (Python 2)**
@@ -50,4 +50,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

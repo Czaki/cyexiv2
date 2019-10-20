@@ -116,4 +116,3 @@ report:
 * version of libexiv2 it was compiled against
 * a minimal script that reliably reproduces the issue
 * a sample image file with which the bug can reliably be reproduced
-

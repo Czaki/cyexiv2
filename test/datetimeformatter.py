@@ -188,4 +188,3 @@ class TestDateTimeFormatter(unittest.TestCase):
         # invalid type
         self.assertRaises(TypeError, DateTimeFormatter.xmp, None)
         self.assertRaises(TypeError, DateTimeFormatter.xmp, 3.14)
-

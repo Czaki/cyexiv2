@@ -293,4 +293,3 @@ void unregisterAllXmpNs();
 } // End of namespace exiv2wrapper
 
 #endif
-

@@ -193,7 +193,7 @@ class IptcTag(ListenerInterface):
 
     def _compute_values(self):
         # Lazy computation of the values from the raw values
-        self._values = NotifyingList([self._convert_to_python(v) 
+        self._values = NotifyingList([self._convert_to_python(v)
                                         for v in self._raw_values])
         self._values.register_listener(self)
         self._values_cookie = False
@@ -218,7 +218,7 @@ class IptcTag(ListenerInterface):
             self._values = values
 
         else:
-            # Make the values a notifying list 
+            # Make the values a notifying list
             self._values = NotifyingList(values)
 
         self._values.register_listener(self)
@@ -377,4 +377,3 @@ class IptcTag(ListenerInterface):
         key, raw_value = state
         self._tag = libexiv2python._IptcTag(key)
         self.raw_value = raw_value
-

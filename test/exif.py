@@ -349,4 +349,3 @@ class TestExifTag(unittest.TestCase):
         tag2 = metadata[tag2.key]
         self.assertEqual(tag2.type, 'Long')
         self.assertEqual(tag2.value, [76830, 20070527, 2, 1, 4228109])
-

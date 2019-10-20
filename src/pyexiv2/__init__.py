@@ -85,4 +85,3 @@ exiv2_version_info = libexiv2python.exiv2_version_info
 
 #: The version of libexiv2 as a string (major.minor.micro).
 __exiv2_version__ = _make_version(exiv2_version_info)
-

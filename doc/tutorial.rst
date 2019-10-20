@@ -292,4 +292,3 @@ They are sorted by increasing size. Let's play with the largest one::
   'image/jpeg'
 
   >>> largest.write_to_file('largest')
-

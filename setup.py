@@ -29,10 +29,10 @@ def get_libboost_osx():
         for f in files:
             if not "-mt" in f:
                 return os.path.basename(f).replace("lib", "").split(".")[0]
-            
+
         print("NOT FOUND", files)
         sys.exit()
-    
+
 if platform.system() == "Darwin":
     boostlib = get_libboost_osx()
     print(boostlib)
@@ -77,4 +77,3 @@ setup(
         )
     ],
 )
-

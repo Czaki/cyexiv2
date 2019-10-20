@@ -28,7 +28,7 @@
 import unittest
 
 from pyexiv2.utils import (undefined_to_string, string_to_undefined,
-                           Fraction, is_fraction, make_fraction, 
+                           Fraction, is_fraction, make_fraction,
                            fraction_to_string)
 
 
@@ -84,4 +84,3 @@ class TestFractions(unittest.TestCase):
         self.assertEqual(fraction_to_string(make_fraction(0, 1)), '0/1')
         self.assertRaises(TypeError, fraction_to_string, None)
         self.assertRaises(TypeError, fraction_to_string, 'invalid')
-

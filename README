@@ -91,5 +91,3 @@ To get a working copy of the latest version of the code, you need to have bazaar
  $ bzr branch lp:py3exiv2
 
 Feedback, bug reports and patches are welcome!
-
-

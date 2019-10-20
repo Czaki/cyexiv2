@@ -88,4 +88,3 @@ class TestBuffer(unittest.TestCase):
         m2 = ImageMetadata.from_buffer(m1.buffer)
         m2.read()
         self.assertEqual(m2[key].value, value)
-

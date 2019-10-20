@@ -183,11 +183,8 @@ def main():
     # Apply the new tags to the file
     data.write()
     # Reload the data
-    data = get_metadata()  
+    data = get_metadata()
     print_xmp(data)
 
 if __name__ == '__main__':
     main()
-
-
-

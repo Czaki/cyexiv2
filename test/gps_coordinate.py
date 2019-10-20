@@ -90,4 +90,3 @@ class TestGPSCoordinate(unittest.TestCase):
 
     def test_to_string(self):
         self.assertEqual(str(GPSCoordinate(54, 59, 23, 'N')), '54,59,23N')
-

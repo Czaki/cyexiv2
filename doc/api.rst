@@ -168,11 +168,11 @@ It provides convenient methods for the manipulation of EXIF, IPTC and XMP metada
 
 .. function:: copy(other, exif=True, iptc=True, xmp=True, comment=True)
 
-   Copy the metadata to another image. The metadata in the destination is overridden. 
-   In particular, if the destination contains e.g. EXIF data and the source doesn’t, 
+   Copy the metadata to another image. The metadata in the destination is overridden.
+   In particular, if the destination contains e.g. EXIF data and the source doesn’t,
    it will be erased in the destination, unless explicitly omitted.
 
-   Arguments:	
+   Arguments:
 
       * *other* An instance of :class:pyexiv2.metadata.ImageMetadata, the destination metadata to copy to (it must have been read() beforehand)
       * *exif* (boolean) – Whether to copy the EXIF metadata
@@ -268,7 +268,7 @@ It provides convenient methods for the manipulation of EXIF, IPTC and XMP metada
 
    Set a metadata tag for a given key. If the tag was previously set, it is overwritten. As a handy shortcut, a value may be passed instead of a fully formed tag. The corresponding tag object will be instantiated.
 
-   Arguments:	
+   Arguments:
 
       * *key* Metadata key in the dotted form familyName.groupName.tagName where familyName may be one of exif, iptc or xmp.
       * *tag_or_value* (pyexiv2.exif.ExifTag or pyexiv2.iptc.IptcTag or pyexiv2.xmp.XmpTag or any valid value type) – An instance of the corresponding family of metadata tag, or a value
@@ -395,7 +395,7 @@ The :class:`ExifTag` define an EXIF tag.
    Arguments:
 
       * *value* The value that fails to be parsed
-      * *type*	The EXIF type of the tag
+      * *type*  The EXIF type of the tag
 
 
 .. class:: pyexiv2.exif.ExifThumbnail
@@ -618,10 +618,10 @@ This module provides the classes :class:`XmpTag` and :class:`XmpValueError` and 
 
    Initialise the xmp parser.
 
-   Calling this method is usually not needed, as encode() and decode() will 
+   Calling this method is usually not needed, as encode() and decode() will
    initialize the XMP Toolkit if necessary.
 
-   This function itself still is not thread-safe and needs to be 
+   This function itself still is not thread-safe and needs to be
    called in a thread-safe manner (e.g., on program startup).
 
 
@@ -631,7 +631,7 @@ This module provides the classes :class:`XmpTag` and :class:`XmpValueError` and 
 
    Terminate the XMP Toolkit and unregister custom namespaces.
 
-   Call this method when the XmpParser is no longer needed to allow the XMP 
+   Call this method when the XmpParser is no longer needed to allow the XMP
    Toolkit to cleanly shutdown.
 
 
@@ -646,7 +646,7 @@ This module provides the classes :class:`XmpTag` and :class:`XmpValueError` and 
       * *name* str() The name of the custom namespace (ending with a /), typically a URL (e.g. http://purl.org/dc/elements/1.1/)
       * *prefix* str() The prefix for the custom namespace (keys in this namespace will be in the form Xmp.{prefix}.{something})
 
-   Raises:	
+   Raises:
 
       * *ValueError* – if the name doesn’t end with a /
       * *KeyError* – if a namespace already exist with this prefix
@@ -664,7 +664,7 @@ This module provides the classes :class:`XmpTag` and :class:`XmpValueError` and 
 
       * *name* str() The name of the custom namespace (ending with a /), typically a URL (e.g. http://purl.org/dc/elements/1.1/)
 
-   Raises:	
+   Raises:
 
       * *ValueError* – if the name doesn’t end with a /
       * *KeyError* – if the namespace is unknown or a builtin namespace
@@ -864,11 +864,9 @@ The :class:`Preview` define a preview image (properties and data buffer) embedde
 
 .. _write-to-file:
 .. function:: write_to_file(path)
-    
+
       Write the preview image to a file on disk. The file extension will be automatically appended to the path.
 
-      Argument:	
+      Argument:
 
          * *path* str(path) The file path to write the preview to (without an extension)
-
-
