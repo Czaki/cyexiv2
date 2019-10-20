@@ -26,14 +26,14 @@
 # ******************************************************************************
 
 import unittest
+import datetime
 
 from pyexiv2.xmp import XmpTag, XmpValueError, register_namespace, \
                         unregister_namespace, unregister_namespaces
 from pyexiv2.utils import FixedOffset, make_fraction
 from pyexiv2.metadata import ImageMetadata
 
-import datetime
-from testutils import EMPTY_JPG_DATA
+from .testutils import EMPTY_JPG_DATA
 
 
 class TestXmpTag(unittest.TestCase):

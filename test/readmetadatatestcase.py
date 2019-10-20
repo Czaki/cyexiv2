@@ -32,7 +32,7 @@ import unittest
 import os.path
 import datetime
 
-import testutils
+from . import testutils
 
 
 FRACTION = 'fraction'

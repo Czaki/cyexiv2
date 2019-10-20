@@ -31,7 +31,7 @@ from pyexiv2.exif import ExifTag, ExifValueError
 from pyexiv2.metadata import ImageMetadata
 from pyexiv2.utils import make_fraction
 
-import testutils
+from . import testutils
 
 import datetime
 import os.path

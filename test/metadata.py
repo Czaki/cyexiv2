@@ -25,6 +25,7 @@
 #
 # ******************************************************************************
 
+from pyexiv2 import metadata
 from pyexiv2.metadata import ImageMetadata
 from pyexiv2.exif import ExifTag
 from pyexiv2.iptc import IptcTag
@@ -36,9 +37,8 @@ import os
 import tempfile
 import time
 import unittest
-from testutils import EMPTY_JPG_DATA
 
-from pyexiv2 import metadata
+from .testutils import EMPTY_JPG_DATA
 
 
 class TestImageMetadata(unittest.TestCase):

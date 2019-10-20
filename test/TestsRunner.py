@@ -26,25 +26,26 @@
 #
 # ******************************************************************************
 
-import unittest
-
-# Test cases to run
-from readmetadatatestcase import ReadMetadataTestCase
-from gps_coordinate import TestGPSCoordinate
-from notifying_list import TestNotifyingList
-from exif import TestExifTag
-from iptc import TestIptcTag
-from xmp import TestXmpTag, TestXmpNamespaces
-from metadata import TestImageMetadata
-from buffer import TestBuffer
-from encoding import TestEncodings
-from utils import TestConversions, TestFractions
-from usercomment import TestUserCommentReadWrite, TestUserCommentAdd
-from pickling import TestPicklingTags
-from datetimeformatter import TestDateTimeFormatter
-
-
 def run_unit_tests():
+    # Import everything only if run_unit_tests is invoked, so that
+    # a top-level "python setup.py test" or similar doesn't run the entire
+    # test suite twice.
+    import unittest
+
+    # Test cases to run
+    from .readmetadatatestcase import ReadMetadataTestCase
+    from .gps_coordinate import TestGPSCoordinate
+    from .notifying_list import TestNotifyingList
+    from .exif import TestExifTag
+    from .iptc import TestIptcTag
+    from .xmp import TestXmpTag, TestXmpNamespaces
+    from .metadata import TestImageMetadata
+    from .buffer import TestBuffer
+    from .encoding import TestEncodings
+    from .utils import TestConversions, TestFractions
+    from .usercomment import TestUserCommentReadWrite, TestUserCommentAdd
+    from .datetimeformatter import TestDateTimeFormatter
+
     # Instantiate a test suite containing all the test cases
     suite = unittest.TestSuite()
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(ReadMetadataTestCase))
@@ -69,4 +70,3 @@ def run_unit_tests():
 
 if __name__ == '__main__':
     run_unit_tests()
-

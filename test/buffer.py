@@ -31,7 +31,7 @@ from datetime import datetime
 
 from pyexiv2.metadata import ImageMetadata
 
-import testutils
+from . import testutils
 
 
 class TestBuffer(unittest.TestCase):

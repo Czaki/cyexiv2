@@ -28,11 +28,10 @@
 from pyexiv2.metadata import ImageMetadata
 
 import unittest
-import testutils
 import os
 import tempfile
-from testutils import EMPTY_JPG_DATA
 
+from . import testutils
 
 class TestUserCommentReadWrite(unittest.TestCase):
 
@@ -77,7 +76,7 @@ class TestUserCommentAdd(unittest.TestCase):
     def setUp(self):
         # Create an empty image file
         fd, self.pathname = tempfile.mkstemp(suffix='.jpg')
-        os.write(fd, EMPTY_JPG_DATA)
+        os.write(fd, testutils.EMPTY_JPG_DATA)
         os.close(fd)
 
     def tearDown(self):
