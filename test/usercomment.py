@@ -43,7 +43,7 @@ class TestUserCommentReadWrite(unittest.TestCase):
 
     def _read_image(self, filename):
         filepath = testutils.get_absolute_file_path(os.path.join('data', filename))
-        self.assert_(testutils.CheckFileSum(filepath, self.checksums[filename]))
+        self.assertTrue(testutils.CheckFileSum(filepath, self.checksums[filename]))
         m = ImageMetadata(filepath)
         m.read()
         return m
@@ -91,7 +91,7 @@ class TestUserCommentAdd(unittest.TestCase):
 
         metadata = ImageMetadata(self.pathname)
         metadata.read()
-        self.assert_(key in metadata.exif_keys)
+        self.assertTrue(key in metadata.exif_keys)
         tag = metadata[key]
         self.assertEqual(tag.type, 'Comment')
         self.assertEqual(tag.value, value)

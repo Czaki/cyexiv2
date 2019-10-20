@@ -117,7 +117,7 @@ class TestExifTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_string('Some text'), b'Some text')
 
         # Invalid values
-        self.failUnlessRaises(ExifValueError, tag._convert_to_string, None)
+        self.assertRaises(ExifValueError, tag._convert_to_string, None)
 
     def test_convert_to_python_sbyte(self):
         # Valid values
@@ -132,7 +132,7 @@ class TestExifTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_string('13'), b'13')
 
         # Invalid values
-        self.failUnlessRaises(ExifValueError, tag._convert_to_string, None)
+        self.assertRaises(ExifValueError, tag._convert_to_string, None)
 
     def test_convert_to_python_comment(self):
         # Valid values
@@ -142,7 +142,7 @@ class TestExifTag(unittest.TestCase):
         for charset in ('Ascii', 'Jis', 'Unicode', 'Undefined', 'InvalidCharsetId'):
             self.assertEqual(tag._convert_to_python('charset="%s" A comment' % charset), 'A comment')
         for charset in ('Ascii', 'Jis', 'Undefined', 'InvalidCharsetId'):
-            self.failIfEqual(tag._convert_to_bytes('charset="%s" déjà vu' % charset), 'déjà vu')
+            self.assertNotEqual(tag._convert_to_bytes('charset="%s" déjà vu' % charset), 'déjà vu')
 
     def test_convert_to_string_comment(self):
         # Valid values
@@ -163,10 +163,10 @@ class TestExifTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_python('+5628'), 5628)
 
         # Invalid values
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, 'abc')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '5,64')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '47.0001')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '1E3')
+        self.assertRaises(ExifValueError, tag._convert_to_python, 'abc')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '5,64')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '47.0001')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '1E3')
 
     def test_convert_to_string_short(self):
         # Valid values
@@ -175,9 +175,9 @@ class TestExifTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_string(123), '123')
 
         # Invalid values
-        self.failUnlessRaises(ExifValueError, tag._convert_to_string, -57)
-        self.failUnlessRaises(ExifValueError, tag._convert_to_string, 'invalid')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_string, 3.14)
+        self.assertRaises(ExifValueError, tag._convert_to_string, -57)
+        self.assertRaises(ExifValueError, tag._convert_to_string, 'invalid')
+        self.assertRaises(ExifValueError, tag._convert_to_string, 3.14)
 
     def test_convert_to_python_sshort(self):
         # Valid values
@@ -188,10 +188,10 @@ class TestExifTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_python('-6'), -6)
 
         # Invalid values
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, 'abc')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '5,64')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '47.0001')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '1E3')
+        self.assertRaises(ExifValueError, tag._convert_to_python, 'abc')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '5,64')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '47.0001')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '1E3')
 
     def test_convert_to_string_sshort(self):
         # Valid values
@@ -201,8 +201,8 @@ class TestExifTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_string(-3), '-3')
 
         # Invalid values
-        self.failUnlessRaises(ExifValueError, tag._convert_to_string, 'invalid')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_string, 3.14)
+        self.assertRaises(ExifValueError, tag._convert_to_string, 'invalid')
+        self.assertRaises(ExifValueError, tag._convert_to_string, 3.14)
 
     def test_convert_to_python_long(self):
         # Valid values
@@ -212,10 +212,10 @@ class TestExifTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_python('+5628'), 5628)
 
         # Invalid values
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, 'abc')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '5,64')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '47.0001')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '1E3')
+        self.assertRaises(ExifValueError, tag._convert_to_python, 'abc')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '5,64')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '47.0001')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '1E3')
 
     def test_convert_to_string_long(self):
         # Valid values
@@ -225,9 +225,9 @@ class TestExifTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_string(678024), '678024')
 
         # Invalid values
-        self.failUnlessRaises(ExifValueError, tag._convert_to_string, -57)
-        self.failUnlessRaises(ExifValueError, tag._convert_to_string, 'invalid')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_string, 3.14)
+        self.assertRaises(ExifValueError, tag._convert_to_string, -57)
+        self.assertRaises(ExifValueError, tag._convert_to_string, 'invalid')
+        self.assertRaises(ExifValueError, tag._convert_to_string, 3.14)
 
     def test_convert_to_python_slong(self):
         # Valid values
@@ -238,10 +238,10 @@ class TestExifTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_python('-437'), -437)
 
         # Invalid values
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, 'abc')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '5,64')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '47.0001')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '1E3')
+        self.assertRaises(ExifValueError, tag._convert_to_python, 'abc')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '5,64')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '47.0001')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '1E3')
 
     def test_convert_to_string_slong(self):
         # Valid values
@@ -252,8 +252,8 @@ class TestExifTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_string(-437), '-437')
 
         # Invalid values
-        self.failUnlessRaises(ExifValueError, tag._convert_to_string, 'invalid')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_string, 3.14)
+        self.assertRaises(ExifValueError, tag._convert_to_string, 'invalid')
+        self.assertRaises(ExifValueError, tag._convert_to_string, 3.14)
 
     def test_convert_to_python_rational(self):
         # Valid values
@@ -262,10 +262,10 @@ class TestExifTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_python('5/3'), make_fraction(5, 3))
 
         # Invalid values
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, 'invalid')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '-5/3')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '5 / 3')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '5/-3')
+        self.assertRaises(ExifValueError, tag._convert_to_python, 'invalid')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '-5/3')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '5 / 3')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '5/-3')
 
     def test_convert_to_string_rational(self):
         # Valid values
@@ -274,8 +274,8 @@ class TestExifTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_string(make_fraction(5, 3)), '5/3')
 
         # Invalid values
-        self.failUnlessRaises(ExifValueError, tag._convert_to_string, 'invalid')
-        self.failUnlessRaises(ExifValueError,
+        self.assertRaises(ExifValueError, tag._convert_to_string, 'invalid')
+        self.assertRaises(ExifValueError,
                               tag._convert_to_string, make_fraction(-5, 3))
 
     def test_convert_to_python_srational(self):
@@ -286,9 +286,9 @@ class TestExifTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_python('-5/3'), make_fraction(-5, 3))
 
         # Invalid values
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, 'invalid')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '5 / 3')
-        self.failUnlessRaises(ExifValueError, tag._convert_to_python, '5/-3')
+        self.assertRaises(ExifValueError, tag._convert_to_python, 'invalid')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '5 / 3')
+        self.assertRaises(ExifValueError, tag._convert_to_python, '5/-3')
 
     def test_convert_to_string_srational(self):
         # Valid values
@@ -298,7 +298,7 @@ class TestExifTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_string(make_fraction(-5, 3)), '-5/3')
 
         # Invalid values
-        self.failUnlessRaises(ExifValueError, tag._convert_to_string, 'invalid')
+        self.assertRaises(ExifValueError, tag._convert_to_string, 'invalid')
 
     def test_convert_to_python_undefined(self):
         # Valid values
@@ -313,18 +313,18 @@ class TestExifTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_string('0100'), '48 49 48 48')
 
         # Invalid values
-        self.failUnlessRaises(ExifValueError, tag._convert_to_string, 3)
+        self.assertRaises(ExifValueError, tag._convert_to_string, 3)
 
     def test_set_value(self):
         tag = ExifTag('Exif.Thumbnail.Orientation', 1) # top, left
         old_value = tag.value
         tag.value = 2
-        self.failIfEqual(tag.value, old_value)
+        self.assertNotEqual(tag.value, old_value)
 
     def test_set_raw_value_invalid(self):
         tag = ExifTag('Exif.GPSInfo.GPSVersionID')
         value = '2 0 0 foo'
-        self.failUnlessRaises(ValueError, setattr, tag, 'raw_value', value)
+        self.assertRaises(ValueError, setattr, tag, 'raw_value', value)
 
     def test_makernote_types(self):
         # Makernote tags not attached to an image have an Undefined type by
@@ -336,11 +336,11 @@ class TestExifTag(unittest.TestCase):
         tag2 = ExifTag('Exif.Pentax.CameraInfo')
         tag2.raw_value = '76830 20070527 2 1 4228109'
         self.assertEqual(tag2.type, 'Undefined')
-        self.failUnlessRaises(ValueError, getattr, tag2, 'value')
+        self.assertRaises(ValueError, getattr, tag2, 'value')
 
         filepath = testutils.get_absolute_file_path(os.path.join('data', 'pentax-makernote.jpg'))
         checksum = '646804b309a4a2d31feafe9bffc5d7f0'
-        self.assert_(testutils.CheckFileSum(filepath, checksum))
+        self.assertTrue(testutils.CheckFileSum(filepath, checksum))
         metadata = ImageMetadata(filepath)
         metadata.read()
         tag1 = metadata[tag1.key]

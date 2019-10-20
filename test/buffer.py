@@ -40,7 +40,7 @@ class TestBuffer(unittest.TestCase):
         filename = os.path.join('data', 'smiley1.jpg')
         self.filepath = testutils.get_absolute_file_path(filename)
         self.md5sum = 'c066958457c685853293058f9bf129c1'
-        self.assert_(testutils.CheckFileSum(self.filepath, self.md5sum))
+        self.assertTrue(testutils.CheckFileSum(self.filepath, self.md5sum))
 
     def _metadata_from_buffer(self):
         fd = open(self.filepath, 'rb')
@@ -70,7 +70,7 @@ class TestBuffer(unittest.TestCase):
         # Write back the changes
         m.write()
         # Check that the buffer has changed
-        self.failIfEqual(hashlib.md5(m.buffer).hexdigest(), self.md5sum)
+        self.assertNotEqual(hashlib.md5(m.buffer).hexdigest(), self.md5sum)
 
     def test_from_original_buffer(self):
         m1 = self._metadata_from_buffer()

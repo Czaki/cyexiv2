@@ -21,7 +21,7 @@
 # along with pyexiv2; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, 5th Floor, Boston, MA 02110-1301 USA.
 #
-# Maintainer: Vincent Vande Vyvre <vincent.vandevyvre@oqapy.eu> 
+# Maintainer: Vincent Vande Vyvre <vincent.vandevyvre@oqapy.eu>
 #
 # ******************************************************************************
 
@@ -64,6 +64,5 @@ def CheckFileSum(filename, md5sum):
     filename -- the name of the file to test
     md5sum -- the expected value of the MD5 sum of the file
     """
-    f = open(filename, 'rb')
-    return (hashlib.md5(f.read()).hexdigest() == md5sum)
-
+    with open(filename, 'rb') as f:
+        return (hashlib.md5(f.read()).hexdigest() == md5sum)

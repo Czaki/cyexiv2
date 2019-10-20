@@ -46,21 +46,21 @@ class ReadMetadataTestCase(unittest.TestCase):
 
     def check_type_and_value(self, tag, etype, evalue):
         if etype == FRACTION:
-            self.assert_(is_fraction(tag.value))
+            self.assertTrue(is_fraction(tag.value))
         else:
-            self.assert_(isinstance(tag.value, etype))
+            self.assertTrue(isinstance(tag.value, etype))
         self.assertEqual(tag.value, evalue)
 
     def check_type_and_values(self, tag, etype, evalues):
         for value in tag.value:
-            self.assert_(isinstance(value, etype))
+            self.assertTrue(isinstance(value, etype))
         self.assertEqual(tag.value, evalues)
 
     def assertCorrectFile(self, filename, md5sum):
         """
         Ensure that the filename and the MD5 checksum match up.
         """
-        self.assert_(testutils.CheckFileSum(filename, md5sum))
+        self.assertTrue(testutils.CheckFileSum(filename, md5sum))
 
     def testReadMetadata(self):
         """

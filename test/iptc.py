@@ -45,10 +45,10 @@ class TestIptcTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_python('-4'), -4)
 
         # Invalid values
-        self.failUnlessRaises(IptcValueError, tag._convert_to_python, 'abc')
-        self.failUnlessRaises(IptcValueError, tag._convert_to_python, '5,64')
-        self.failUnlessRaises(IptcValueError, tag._convert_to_python, '47.0001')
-        self.failUnlessRaises(IptcValueError, tag._convert_to_python, '1E3')
+        self.assertRaises(IptcValueError, tag._convert_to_python, 'abc')
+        self.assertRaises(IptcValueError, tag._convert_to_python, '5,64')
+        self.assertRaises(IptcValueError, tag._convert_to_python, '47.0001')
+        self.assertRaises(IptcValueError, tag._convert_to_python, '1E3')
 
     def test_convert_to_string_short(self):
         # Valid values
@@ -58,8 +58,8 @@ class TestIptcTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_string(-57), '-57')
 
         # Invalid values
-        self.failUnlessRaises(IptcValueError, tag._convert_to_string, 'invalid')
-        self.failUnlessRaises(IptcValueError, tag._convert_to_string, 3.14)
+        self.assertRaises(IptcValueError, tag._convert_to_string, 'invalid')
+        self.assertRaises(IptcValueError, tag._convert_to_string, 3.14)
 
     def test_convert_to_python_string(self):
         # Valid values
@@ -78,7 +78,7 @@ class TestIptcTag(unittest.TestCase):
                          b'Some text with exotic ch\xc3\xa0r\xc3\xa4ct\xc3\xa9r\xca\x90.')
 
         # Invalid values
-        self.failUnlessRaises(IptcValueError, tag._convert_to_string, None)
+        self.assertRaises(IptcValueError, tag._convert_to_string, None)
 
     def test_convert_to_python_date(self):
         # Valid values
@@ -88,12 +88,12 @@ class TestIptcTag(unittest.TestCase):
                          datetime.date(1999, 10, 13))
 
         # Invalid values
-        self.failUnlessRaises(IptcValueError, tag._convert_to_python, 'invalid')
-        self.failUnlessRaises(IptcValueError, tag._convert_to_python, '11/10/1983')
-        self.failUnlessRaises(IptcValueError, tag._convert_to_python, '-1000')
-        self.failUnlessRaises(IptcValueError, tag._convert_to_python, '2009-02')
-        self.failUnlessRaises(IptcValueError, tag._convert_to_python, '2009-10-32')
-        self.failUnlessRaises(IptcValueError, tag._convert_to_python, '2009-02-24T22:12:54')
+        self.assertRaises(IptcValueError, tag._convert_to_python, 'invalid')
+        self.assertRaises(IptcValueError, tag._convert_to_python, '11/10/1983')
+        self.assertRaises(IptcValueError, tag._convert_to_python, '-1000')
+        self.assertRaises(IptcValueError, tag._convert_to_python, '2009-02')
+        self.assertRaises(IptcValueError, tag._convert_to_python, '2009-10-32')
+        self.assertRaises(IptcValueError, tag._convert_to_python, '2009-02-24T22:12:54')
 
     def test_convert_to_string_date(self):
         # Valid values
@@ -115,8 +115,8 @@ class TestIptcTag(unittest.TestCase):
                          '1899-12-31')
 
         # Invalid values
-        self.failUnlessRaises(IptcValueError, tag._convert_to_string, 'invalid')
-        self.failUnlessRaises(IptcValueError, tag._convert_to_string, None)
+        self.assertRaises(IptcValueError, tag._convert_to_string, 'invalid')
+        self.assertRaises(IptcValueError, tag._convert_to_string, None)
 
     def test_convert_to_python_time(self):
         # Valid values
@@ -130,12 +130,12 @@ class TestIptcTag(unittest.TestCase):
                          datetime.time(5, 3, 54, tzinfo=FixedOffset('-', 10, 30)))
 
         # Invalid values
-        self.failUnlessRaises(IptcValueError, tag._convert_to_python, 'invalid')
-        self.failUnlessRaises(IptcValueError, tag._convert_to_python, '23:12:42')
-        self.failUnlessRaises(IptcValueError, tag._convert_to_python, '25:12:42+00:00')
-        self.failUnlessRaises(IptcValueError, tag._convert_to_python, '21:77:42+00:00')
-        self.failUnlessRaises(IptcValueError, tag._convert_to_python, '21:12:98+00:00')
-        self.failUnlessRaises(IptcValueError, tag._convert_to_python, '081242+0000')
+        self.assertRaises(IptcValueError, tag._convert_to_python, 'invalid')
+        self.assertRaises(IptcValueError, tag._convert_to_python, '23:12:42')
+        self.assertRaises(IptcValueError, tag._convert_to_python, '25:12:42+00:00')
+        self.assertRaises(IptcValueError, tag._convert_to_python, '21:77:42+00:00')
+        self.assertRaises(IptcValueError, tag._convert_to_python, '21:12:98+00:00')
+        self.assertRaises(IptcValueError, tag._convert_to_python, '081242+0000')
 
     def test_convert_to_string_time(self):
         # Valid values
@@ -173,7 +173,7 @@ class TestIptcTag(unittest.TestCase):
                          '10:52:04-04:00')
 
         # Invalid values
-        self.failUnlessRaises(IptcValueError, tag._convert_to_string, 'invalid')
+        self.assertRaises(IptcValueError, tag._convert_to_string, 'invalid')
 
     def test_convert_to_python_undefined(self):
         # Valid values
@@ -194,26 +194,26 @@ class TestIptcTag(unittest.TestCase):
                          '�lj1�eEϟ�u����ᒻ;C(�SpI]���QI�}')
 
         # Invalid values
-        self.failUnlessRaises(IptcValueError, tag._convert_to_string, None)
+        self.assertRaises(IptcValueError, tag._convert_to_string, None)
 
     def test_set_single_value_raises(self):
         tag = IptcTag('Iptc.Application2.City', ['Seattle'])
-        self.failUnlessRaises(TypeError, setattr, tag, 'value', 'Barcelona')
+        self.assertRaises(TypeError, setattr, tag, 'value', 'Barcelona')
 
     def test_set_value(self):
         tag = IptcTag('Iptc.Application2.City', ['Seattle'])
         old_value = tag.value
         tag.value = ['Barcelona']
-        self.failIfEqual(tag.value, old_value)
+        self.assertNotEqual(tag.value, old_value)
 
     def test_set_raw_value_invalid(self):
         tag = IptcTag('Iptc.Envelope.DateSent')
         value = ['foo']
-        self.failUnlessRaises(ValueError, setattr, tag, 'raw_value', value)
+        self.assertRaises(ValueError, setattr, tag, 'raw_value', value)
 
     def test_set_value_non_repeatable(self):
         tag = IptcTag('Iptc.Application2.ReleaseDate')
         value = [datetime.date.today(), datetime.date.today()]
-        self.failUnlessRaises(KeyError, setattr, tag, 'value', value)
+        self.assertRaises(KeyError, setattr, tag, 'value', value)
 
 

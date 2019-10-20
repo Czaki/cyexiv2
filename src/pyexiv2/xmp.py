@@ -176,7 +176,7 @@ class XmpTag(object):
 
     def _set_raw_value(self, value):
         type_ = self._tag._getExiv2Type()
-        
+
         if type_ == 'XmpText':
             self._tag._setTextValue(value)
 
@@ -396,26 +396,21 @@ class XmpTag(object):
             # TODO
             raise NotImplementedError('XMP conversion for type [%s]' % type_)
 
-        elif type_ in ('AgentName', 'ProperName', 'Text'):
+        elif type_ in ('AgentName', 'ProperName', 'Text', 'URI', 'URL'):
             if isinstance(value, bytes):
                 try:
-                    value = str(value, 'utf-8')
-                except TypeError:
-                    raise XmpValueError(value, type_)
-            return value
+                    return value.decode('utf-8')
+                except UnicodeEncodeError:
+                    raise XMPValueError(value, type_)
+
+            elif isinstance(value, str):
+                return value
+
+            raise XmpValueError(value, type_)
 
         elif type_ == 'Thumbnail':
             # TODO
             raise NotImplementedError('XMP conversion for type [%s]' % type_)
-
-        elif type_ in ('URI', 'URL'):
-            if isinstance(value, bytes):
-                try:
-                    value = value.decode('utf-8')
-                except UnicodeDecodeError:
-                    # Unknow encoding, return the raw value
-                    pass
-            return value
 
         elif type_ == 'XPath':
             # TODO
@@ -475,8 +470,8 @@ class XmpTag(object):
                 except UnicodeEncodeError:
                     raise XmpValueError(value, type_)
 
-            elif isinstance(value, bytes): 
-                return value 
+            elif isinstance(value, bytes):
+                return value
 
             raise XmpValueError(value, type_)
 
@@ -525,16 +520,16 @@ class XmpTag(object):
 def initialiseXmpParser():
     """Initialise the xmp parser.
 
-    Calling this method is usually not needed, as encode() and decode() will 
+    Calling this method is usually not needed, as encode() and decode() will
     initialize the XMP Toolkit if necessary.
 
-    The function takes optional pointers to a callback function xmpLockFct and 
-    related data pLockData that the parser uses when XMP namespaces are 
+    The function takes optional pointers to a callback function xmpLockFct and
+    related data pLockData that the parser uses when XMP namespaces are
     subsequently registered.
 
-    This function itself still is not thread-safe and needs to be 
-    called in a thread-safe manner (e.g., on program startup), but if used with 
-    suitable additional locking parameters, any subsequent registration of 
+    This function itself still is not thread-safe and needs to be
+    called in a thread-safe manner (e.g., on program startup), but if used with
+    suitable additional locking parameters, any subsequent registration of
     namespaces will be thread-safe.
     """
     libexiv2python._initialiseXmpParser()
@@ -544,8 +539,8 @@ def closeXmpParser():
 
     Terminate the XMP Toolkit and unregister custom namespaces.
 
-    Call this method when the XmpParser is no longer needed to allow the XMP 
-    Toolkit to cleanly shutdown. 
+    Call this method when the XmpParser is no longer needed to allow the XMP
+    Toolkit to cleanly shutdown.
     """
     libexiv2python._closeXmpParser()
 
@@ -602,4 +597,3 @@ def unregister_namespaces():
     This function always succeeds.
     """
     libexiv2python._unregisterAllXmpNs()
-

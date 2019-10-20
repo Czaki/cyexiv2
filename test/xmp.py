@@ -226,17 +226,17 @@ class TestXmpTag(unittest.TestCase):
         tag = XmpTag('Xmp.photoshop.CaptionWriter')
         self.assertEqual(tag.type, 'ProperName')
         self.assertEqual(tag._convert_to_python('Gérard', 'ProperName'), 'Gérard')
-        self.assertEqual(tag._convert_to_python('Python Software Foundation', 'ProperName'), 
+        self.assertEqual(tag._convert_to_python('Python Software Foundation', 'ProperName'),
                                                 'Python Software Foundation')
         # Invalid values
-        self.assertRaises(XmpValueError, tag._convert_to_python(None, 'ProperName'))
+        self.assertRaises(XmpValueError, tag._convert_to_python, None, 'ProperName')
 
     def test_convert_to_string_propername(self):
         # Valid values
         tag = XmpTag('Xmp.photoshop.CaptionWriter')
         self.assertEqual(tag.type, 'ProperName')
         self.assertEqual(tag._convert_to_string('Gérard', 'ProperName'), b'G\xc3\xa9rard')
-        self.assertEqual(tag._convert_to_string('Python Software Foundation', 'ProperName'), 
+        self.assertEqual(tag._convert_to_string('Python Software Foundation', 'ProperName'),
                                                 b'Python Software Foundation')
         # Invalid values
         self.assertRaises(XmpValueError, tag._convert_to_string, None, 'ProperName')
@@ -249,7 +249,7 @@ class TestXmpTag(unittest.TestCase):
         self.assertEqual(tag._convert_to_python(b'Some text with exotic ch\xc3\xa0r\xc3\xa4ct\xc3\xa9r\xca\x90.', 'Text'),
                          'Some text with exotic chàräctérʐ.')
         # Invalid values
-        self.assertRaises(XmpValueError, tag._convert_to_python(None, 'Text'))
+        self.assertRaises(XmpValueError, tag._convert_to_python, None, 'Text')
 
     def test_convert_to_string_text(self):
         # Valid values
@@ -331,7 +331,7 @@ class TestXmpTag(unittest.TestCase):
         tag = XmpTag('Xmp.xmp.ModifyDate', datetime.datetime(2005, 9, 7, 15, 9, 51, tzinfo=FixedOffset('-', 7, 0)))
         old_value = tag.value
         tag.value = datetime.datetime(2009, 4, 22, 8, 30, 27, tzinfo=FixedOffset())
-        self.failIfEqual(tag.value, old_value)
+        self.assertNotEqual(tag.value, old_value)
 
     def test_set_value_empty(self):
         tag = XmpTag('Xmp.dc.creator')
@@ -389,7 +389,7 @@ class TestXmpNamespaces(unittest.TestCase):
         key = 'Xmp.bar.foo'
         value = 'foobar'
         self.metadata[key] = value
-        self.assert_(key in self.metadata.xmp_keys)
+        self.assertTrue(key in self.metadata.xmp_keys)
 
     def test_can_only_set_text_values(self):
         # At the moment custom namespaces only support setting simple text
@@ -434,7 +434,7 @@ class TestXmpNamespaces(unittest.TestCase):
         register_namespace(name, prefix)
         key = 'Xmp.%s.blu' % prefix
         self.metadata[key] = 'foobar'
-        self.assert_(key in self.metadata.xmp_keys)
+        self.assertTrue(key in self.metadata.xmp_keys)
         unregister_namespace(name)
         self.assertRaises(KeyError, self.metadata.write)
 
@@ -454,4 +454,3 @@ class TestXmpNamespaces(unittest.TestCase):
         unregister_namespaces()
         self.assertRaises(KeyError, self.metadata.__setitem__, 'Xmp.%s.baz' % prefix, 'foobaz')
         self.assertRaises(KeyError, self.metadata.__setitem__, 'Xmp.%s.baz' % prefix2, 'foobaz')
-

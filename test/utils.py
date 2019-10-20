@@ -55,17 +55,17 @@ class TestConversions(unittest.TestCase):
 class TestFractions(unittest.TestCase):
 
     def test_is_fraction(self):
-        self.failUnless(is_fraction(Fraction()))
-        self.failUnless(is_fraction(Fraction(3, 5)))
-        self.failUnless(is_fraction(Fraction(Fraction(4, 5))))
-        self.failUnless(is_fraction(Fraction('3/2')))
-        self.failUnless(is_fraction(Fraction('-4/5')))
-        self.failIf(is_fraction(3 / 5))
-        self.failIf(is_fraction('3/5'))
-        self.failIf(is_fraction('2.7'))
-        self.failIf(is_fraction(2.7))
-        self.failIf(is_fraction('notafraction'))
-        self.failIf(is_fraction(None))
+        self.assertTrue(is_fraction(Fraction()))
+        self.assertTrue(is_fraction(Fraction(3, 5)))
+        self.assertTrue(is_fraction(Fraction(Fraction(4, 5))))
+        self.assertTrue(is_fraction(Fraction('3/2')))
+        self.assertTrue(is_fraction(Fraction('-4/5')))
+        self.assertFalse(is_fraction(3 / 5))
+        self.assertFalse(is_fraction('3/5'))
+        self.assertFalse(is_fraction('2.7'))
+        self.assertFalse(is_fraction(2.7))
+        self.assertFalse(is_fraction('notafraction'))
+        self.assertFalse(is_fraction(None))
 
     def test_make_fraction(self):
         self.assertEqual(make_fraction(3, 5), Fraction(3, 5))
