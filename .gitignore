@@ -3,27 +3,28 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+*.egg
+*.egg-info/
 .Python
 .eggs/
 .installed.cfg
-MANIFEST
-build/
-develop-eggs/
-dist/
-downloads/
-*.egg
-*.egg-info/
-eggs/
-lib/
-lib64/
-parts/
 pip-delete-this-directory.txt
 pip-log.txt
-pip-wheel-metadata/
-sdist/
-share/python-wheels/
-var/
-wheels/
+/MANIFEST
+/build/
+/develop-eggs/
+/dist/
+/doc/_build/
+/downloads/
+/eggs/
+/lib/
+/lib64/
+/parts/
+/pip-wheel-metadata/
+/sdist/
+/share/python-wheels/
+/var/
+/wheels/
 
 # C generated files
 *.a
@@ -36,31 +37,3 @@ wheels/
 *.so
 *.trs
 *.T
-
-# Miscellaneous from original .bzrignore.
-# Some of these should probably be pruned.
-Cyrillic.jpg
-DSCF0006.JPG
-Hebrew.jpg
-_DSC0011_1.TIFF
-_DSC1454.JPG
-bytearray_vectorC++
-convert_utf8_to_ucs2
-coredump.py
-data.txt
-diffs
-docs/
-error(027).cpp
-exiv2
-old_025_exiv2wrapper.cpp
-packaging/
-patch_exiv2_Exiv2_Error
-pickling.py
-py3exiv2/__init__.py
-py3exiv2/art/
-py3exiv2/doc/_build/
-py3exiv2/build
-py3exiv2/build.sh
-rpmbuild-py3exiv2/
-samples/
-test_py2.py

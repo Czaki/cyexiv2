@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+# Replacement setup.py for py3exiv2, that allows building on OSX
+# https://gist.github.com/ndevenish/6410cab393bd8dec1b016061ddb5573b
 
 import sys
 import os
@@ -12,7 +14,7 @@ from setuptools import setup, find_packages, Extension
 
 from codecs import open
 from os import path
-]
+
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the relevant file
@@ -40,7 +42,7 @@ else:
 
 setup(
     name='py3exiv2',
-    version='0.1.0',
+    version='0.7.1',
     description='A Python3 binding to the library exiv2',
     long_description=long_description,
     url='https://launchpad.net/py3exiv2',
@@ -55,22 +57,24 @@ setup(
         'Topic :: Software Development',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: C++',
-        'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8'
     ],
     keywords='exiv2 pyexiv2 EXIF IPTC XMP image metadata',
     packages = find_packages('src'),
     package_dir = {'': 'src'},
     package_data={'':['src/*.cpp', 'src/*.hpp',]},
-    # cmdclass={'install': install}
+    #cmdclass={'install': install},
     ext_modules=[
     Extension('libexiv2python',
         ['src/exiv2wrapper.cpp', 'src/exiv2wrapper_python.cpp'],
-        include_dirs=[],
-        library_dirs=[],
         libraries=[boostlib, 'exiv2'],
         extra_compile_args=['-g']
         )
     ],
 )
+
