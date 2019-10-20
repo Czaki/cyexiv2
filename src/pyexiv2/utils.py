@@ -33,11 +33,11 @@ import re
 
 from fractions import Fraction
 
+
 class FixedOffset(datetime.tzinfo):
     """Define a fixed positive or negative offset of a local time from UTC.
 
     """
-
     def __init__(self, sign='+', hours=0, minutes=0):
         """Initialize an offset from a sign ('+' or '-') and an absolute value
         expressed in hours and minutes.
@@ -67,7 +67,7 @@ class FixedOffset(datetime.tzinfo):
         total = self.hours * 60 + self.minutes
         if self.sign == '-':
             total = -total
-        return datetime.timedelta(minutes = total)
+        return datetime.timedelta(minutes=total)
 
     def dst(self, dt):
         """Return the daylight saving time (DST) adjustment.
@@ -141,11 +141,13 @@ def string_to_undefined(sequence):
     """
     return " ".join([str(ord(s)) for s in sequence])
 
+
 def is_fraction(obj):
     """Test whether the object is a valid fraction.
 
     """
     return isinstance(obj, Fraction)
+
 
 def match_string(string):
     """Match a string against the expected format for a :class:`Fraction`
@@ -166,6 +168,7 @@ def match_string(string):
 
     gd = match.groupdict()
     return (int(gd['numerator']), int(gd['denominator']))
+
 
 def make_fraction(*args):
     """Make a fraction.
@@ -208,12 +211,10 @@ def fraction_to_string(fraction):
 
 
 class ListenerInterface(object):
-
     """
     Interface that an object that wants to listen to changes on another object
     should implement.
     """
-
     def contents_changed(self):
         """
         React on changes on the object observed.
@@ -331,9 +332,11 @@ class GPSCoordinate(object):
     Its attributes (degrees, minutes, seconds, direction) are read-only
     properties.
     """
-    _format_re = re.compile(r'(?P<degrees>-?\d+),'
-                    '(?P<minutes>\d+)(,(?P<seconds>\d+)|\.(?P<fraction>\d+))'
-                    '(?P<direction>[NSEW])')
+    _format_re = re.compile(
+        r'(?P<degrees>-?\d+),'
+        '(?P<minutes>\d+)(,(?P<seconds>\d+)|\.(?P<fraction>\d+))'
+        '(?P<direction>[NSEW])'
+    )
 
     def __init__(self, degrees, minutes, seconds, direction):
         """Instanciate a GPSCoordinate object.
@@ -410,7 +413,9 @@ class GPSCoordinate(object):
         """
         match = GPSCoordinate._format_re.match(string)
         if match is None:
-            raise ValueError('Invalid format for a GPS coordinate: %s' % string)
+            raise ValueError(
+                'Invalid format for a GPS coordinate: %s' % string
+            )
 
         gd = match.groupdict()
         fraction = gd['fraction']
@@ -420,8 +425,9 @@ class GPSCoordinate(object):
         else:
             seconds = int(gd['seconds'])
 
-        return GPSCoordinate(int(gd['degrees']), int(gd['minutes']), seconds,
-                             gd['direction'])
+        return GPSCoordinate(
+            int(gd['degrees']), int(gd['minutes']), seconds, gd['direction']
+        )
 
     def __eq__(self, other):
         """Compare two GPS coordinates for equality.
@@ -443,8 +449,9 @@ class GPSCoordinate(object):
         to the XMP specification
 
         """
-        return '%d,%d,%d%s' % (self._degrees, self._minutes, self._seconds,
-                               self._direction)
+        return '%d,%d,%d%s' % (
+            self._degrees, self._minutes, self._seconds, self._direction
+        )
 
 
 class DateTimeFormatter(object):
@@ -459,7 +466,6 @@ class DateTimeFormatter(object):
     This class mostly exists for internal usage only. Clients should never need
     to use it.
     """
-
     @staticmethod
     def timedelta_to_offset(t):
         """Convert a time delta to a string..
@@ -472,7 +478,7 @@ class DateTimeFormatter(object):
         # timedelta.total_seconds() is only available starting with Python 3.2
         seconds = t.total_seconds()
         hours = int(seconds / 3600)
-        minutes = abs(int((seconds - hours * 3600) / 60))
+        minutes = abs(int((seconds - hours*3600) / 60))
         return '%+03d:%02d' % (hours, minutes)
 
     @staticmethod
@@ -495,8 +501,10 @@ class DateTimeFormatter(object):
             return '%04d:%02d:%02d' % (d.year, d.month, d.day)
 
         else:
-            raise TypeError('expecting an object of type '
-                            'datetime.datetime or datetime.date')
+            raise TypeError(
+                'expecting an object of type '
+                'datetime.datetime or datetime.date'
+            )
 
     @staticmethod
     def iptc_date(d):
@@ -519,8 +527,10 @@ class DateTimeFormatter(object):
             return '%04d-%02d-%02d' % (d.year, d.month, d.day)
 
         else:
-            raise TypeError('expecting an object of type '
-                            'datetime.datetime or datetime.date')
+            raise TypeError(
+                'expecting an object of type '
+                'datetime.datetime or datetime.date'
+            )
 
     @staticmethod
     def iptc_time(d):
@@ -551,8 +561,10 @@ class DateTimeFormatter(object):
             return r
 
         else:
-            raise TypeError('expecting an object of type '
-                            'datetime.datetime or datetime.time')
+            raise TypeError(
+                'expecting an object of type '
+                'datetime.datetime or datetime.time'
+            )
 
     @staticmethod
     def xmp(d):
@@ -598,5 +610,7 @@ class DateTimeFormatter(object):
             return '%04d-%02d-%02d' % (d.year, d.month, d.day)
 
         else:
-            raise TypeError('expecting an object of type '
-                            'datetime.datetime or datetime.date')
+            raise TypeError(
+                'expecting an object of type '
+                'datetime.datetime or datetime.date'
+            )

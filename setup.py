@@ -21,6 +21,7 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
+
 def get_libboost_osx():
     places = ["/usr/local/lib/"]
     for place in places:
@@ -32,6 +33,7 @@ def get_libboost_osx():
 
         print("NOT FOUND", files)
         sys.exit()
+
 
 if platform.system() == "Darwin":
     boostlib = get_libboost_osx()
@@ -62,18 +64,22 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8'
+        'Programming Language :: Python :: 3.8',
     ],
     keywords='exiv2 pyexiv2 EXIF IPTC XMP image metadata',
-    packages = find_packages('src'),
-    package_dir = {'': 'src'},
-    package_data={'':['src/*.cpp', 'src/*.hpp',]},
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
+    package_data={'': [
+        'src/*.cpp',
+        'src/*.hpp',
+    ]},
     #cmdclass={'install': install},
     ext_modules=[
-    Extension('libexiv2python',
-        ['src/exiv2wrapper.cpp', 'src/exiv2wrapper_python.cpp'],
-        libraries=[boostlib, 'exiv2'],
-        extra_compile_args=['-g']
+        Extension(
+            'libexiv2python',
+            ['src/exiv2wrapper.cpp', 'src/exiv2wrapper_python.cpp'],
+            libraries=[boostlib, 'exiv2'],
+            extra_compile_args=['-g']
         )
     ],
 )

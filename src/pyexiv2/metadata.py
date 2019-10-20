@@ -56,7 +56,6 @@ class ImageMetadata(MutableMapping):
     types.
     It also provides access to the previews embedded in an image.
     """
-
     def __init__(self, filename):
         """Instanciate the ImageMeatadata class.
 
@@ -431,8 +430,12 @@ class ImageMetadata(MutableMapping):
     def _del_comment(self):
         self._image._clearComment()
 
-    comment = property(fget=_get_comment, fset=_set_comment, fdel=_del_comment,
-                       doc='The image comment.')
+    comment = property(
+        fget=_get_comment,
+        fset=_set_comment,
+        fdel=_del_comment,
+        doc='The image comment.'
+    )
 
     @property
     def previews(self):
@@ -515,7 +518,7 @@ class ImageMetadata(MutableMapping):
         else:
             charsets = {'utf-8': '\x1b%G'}
             try:
-                self['Iptc.Envelope.CharacterSet'] = (charsets[name],)
+                self['Iptc.Envelope.CharacterSet'] = (charsets[name], )
             except KeyError:
                 raise ValueError('Unhandled charset: %s' % name)
 
@@ -615,11 +618,13 @@ class ImageMetadata(MutableMapping):
         float_ -- if False, default, the value of the exposure time is returned
                   as rational otherwise as float
         """
-        data = {"iso": self.get_iso(),
-                "speed": self.get_shutter_speed(float_),
-                "focal": self.get_focal_length(),
-                "aperture": self.get_aperture(),
-                "orientation": self.get_orientation()}
+        data = {
+            "iso": self.get_iso(),
+            "speed": self.get_shutter_speed(float_),
+            "focal": self.get_focal_length(),
+            "aperture": self.get_aperture(),
+            "orientation": self.get_orientation()
+        }
 
         return data
 
@@ -636,12 +641,14 @@ class ImageMetadata(MutableMapping):
 
         When a tag is not set, the value will be None
         """
-        tags = [('creator', 'Xmp.dc.creator'),
-                ('artist', 'Exif.Image.Artist'),
-                ('rights', 'Xmp.dc.rights'),
-                ('copyright', 'Exif.Image.Copyright'),
-                ('marked', 'Xmp.xmpRights.Marked'),
-                ('usage', 'Xmp.xmpRights.UsageTerms')]
+        tags = [
+            ('creator', 'Xmp.dc.creator'),
+            ('artist', 'Exif.Image.Artist'),
+            ('rights', 'Xmp.dc.rights'),
+            ('copyright', 'Exif.Image.Copyright'),
+            ('marked', 'Xmp.xmpRights.Marked'),
+            ('usage', 'Xmp.xmpRights.UsageTerms'),
+        ]
         rights = {}
         for tag in tags:
             try:

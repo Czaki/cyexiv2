@@ -40,7 +40,6 @@ import warnings
 
 
 class IptcValueError(ValueError):
-
     """
     Exception raised when failing to parse the *value* of an IPTC tag.
 
@@ -49,7 +48,6 @@ class IptcValueError(ValueError):
     :attribute type: the IPTC type of the tag
     :type type: string
     """
-
     def __init__(self, value, type):
         self.value = value
         self.type = type
@@ -76,7 +74,11 @@ class IptcTag(ListenerInterface):
     # strptime is not flexible enough to handle all valid Time formats, we use a
     # custom regular expression
     _time_zone_re = r'(?P<sign>\+|-)(?P<ohours>\d{2}):(?P<ominutes>\d{2})'
-    _time_re = re.compile(r'(?P<hours>\d{2}):(?P<minutes>\d{2}):(?P<seconds>\d{2})(?P<tzd>%s)' % _time_zone_re)
+    _time_re = re.compile(
+        r'(?P<hours>\d{2}):(?P<minutes>\d{2}):(?P<seconds>\d{2})(?P<tzd>%s)' %
+        _time_zone_re
+    )
+
     def __init__(self, key, values=None, _tag=None):
         """The tag can be initialized with an optional list of values which
         expected type depends on the IPTC type of the tag.
@@ -188,13 +190,17 @@ class IptcTag(ListenerInterface):
         self._raw_values = values
         self._values_cookie = True
 
-    raw_value = property(fget=_get_raw_values, fset=_set_raw_values,
-                         doc='The raw values of the tag as a list of strings.')
+    raw_value = property(
+        fget=_get_raw_values,
+        fset=_set_raw_values,
+        doc='The raw values of the tag as a list of strings.'
+    )
 
     def _compute_values(self):
         # Lazy computation of the values from the raw values
-        self._values = NotifyingList([self._convert_to_python(v)
-                                        for v in self._raw_values])
+        self._values = NotifyingList([
+            self._convert_to_python(v) for v in self._raw_values
+        ])
         self._values.register_listener(self)
         self._values_cookie = False
 
@@ -224,8 +230,11 @@ class IptcTag(ListenerInterface):
         self._values.register_listener(self)
         self._values_cookie = False
 
-    value = property(fget=_get_values, fset=_set_values,
-                     doc='The values of the tag as a list of python objects.')
+    value = property(
+        fget=_get_values,
+        fset=_set_values,
+        doc='The values of the tag as a list of python objects.'
+    )
 
     def contents_changed(self):
         # Implementation of the ListenerInterface.
@@ -285,14 +294,19 @@ class IptcTag(ListenerInterface):
 
             gd = match.groupdict()
             try:
-                tzinfo = FixedOffset(gd['sign'], int(gd['ohours']),
-                                     int(gd['ominutes']))
+                tzinfo = FixedOffset(
+                    gd['sign'], int(gd['ohours']), int(gd['ominutes'])
+                )
             except TypeError:
                 raise IptcValueError(value, self.type)
 
             try:
-                return datetime.time(int(gd['hours']), int(gd['minutes']),
-                                     int(gd['seconds']), tzinfo=tzinfo)
+                return datetime.time(
+                    int(gd['hours']),
+                    int(gd['minutes']),
+                    int(gd['seconds']),
+                    tzinfo=tzinfo
+                )
             except (TypeError, ValueError):
                 raise IptcValueError(value, self.type)
 
@@ -365,7 +379,7 @@ class IptcTag(ListenerInterface):
             right = '(No values)'
 
         else:
-             right = self._raw_values
+            right = self._raw_values
 
         return '<%s = %s>' % (left, right)
 

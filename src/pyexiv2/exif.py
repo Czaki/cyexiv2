@@ -30,14 +30,16 @@ EXIF specific code.
 
 import libexiv2python
 
-from pyexiv2.utils import (is_fraction, make_fraction, fraction_to_string,
-                          NotifyingList, ListenerInterface,
-                          undefined_to_string, string_to_undefined,
-                          DateTimeFormatter)
+from pyexiv2.utils import (
+    is_fraction, make_fraction, fraction_to_string, NotifyingList,
+    ListenerInterface, undefined_to_string, string_to_undefined,
+    DateTimeFormatter
+)
 
 import time
 import datetime
 import sys
+
 
 class ExifValueError(ValueError):
     """Exception raised when failing to parse the *value* of an EXIF tag.
@@ -54,7 +56,9 @@ class ExifValueError(ValueError):
         self.type = type_
 
     def __str__(self):
-        return 'Invalid value for EXIF type [%s]: [%s]' %(self.type, self.value)
+        return 'Invalid value for EXIF type [%s]: [%s]' % (
+            self.type, self.value
+        )
 
 
 class ExifTag(ListenerInterface):
@@ -75,11 +79,11 @@ class ExifTag(ListenerInterface):
     # According to the EXIF specification, the only accepted format for an Ascii
     # value representing a datetime is '%Y:%m:%d %H:%M:%S', but it seems that
     # others formats can be found in the wild.
-    _datetime_formats = ('%Y:%m:%d %H:%M:%S',
-                         '%Y-%m-%d %H:%M:%S',
-                         '%Y-%m-%dT%H:%M:%SZ')
+    _datetime_formats = (
+        '%Y:%m:%d %H:%M:%S', '%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%SZ'
+    )
 
-    _date_formats = ('%Y:%m:%d',)
+    _date_formats = ('%Y:%m:%d', )
 
     def __init__(self, key, value=None, _tag=None):
         """ The tag can be initialized with an optional value which expected
@@ -176,15 +180,19 @@ class ExifTag(ListenerInterface):
         self._raw_value = value
         self._value_cookie = True
 
-    raw_value = property(fget=_get_raw_value, fset=_set_raw_value,
-                         doc='The raw value of the tag as a string.')
+    raw_value = property(
+        fget=_get_raw_value,
+        fset=_set_raw_value,
+        doc='The raw value of the tag as a string.'
+    )
 
     def _compute_value(self):
         """Lazy computation of the value from the raw value.
 
         """
-        if self.type in ('Short', 'SShort', 'Long', 'SLong',
-                         'Rational', 'SRational'):
+        if self.type in (
+            'Short', 'SShort', 'Long', 'SLong', 'Rational', 'SRational'
+        ):
             # May contain multiple values
             values = self._raw_value.split()
             if len(values) > 1:
@@ -230,8 +238,11 @@ class ExifTag(ListenerInterface):
 
         self._value_cookie = False
 
-    value = property(fget=_get_value, fset=_set_value,
-                     doc='The value of the tag as a python object.')
+    value = property(
+        fget=_get_value,
+        fset=_set_value,
+        doc='The value of the tag as a python object.'
+    )
 
     @property
     def human_value(self):
@@ -498,7 +509,7 @@ class ExifTag(ListenerInterface):
             right = '(Binary value suppressed)'
 
         else:
-             right = self._raw_value
+            right = self._raw_value
 
         return '<%s = %s>' % (left, right)
 
@@ -513,13 +524,11 @@ class ExifTag(ListenerInterface):
 
 
 class ExifThumbnail(object):
-
     """
     A thumbnail image optionally embedded in the IFD1 segment of the EXIF data.
 
     The image is either a TIFF or a JPEG image.
     """
-
     def __init__(self, _metadata):
         self._metadata = _metadata
 
@@ -583,6 +592,9 @@ class ExifThumbnail(object):
         self._metadata._image._setExifThumbnailFromData(data)
         self._update_exif_tags_cache()
 
-    data = property(fget=_get_data, fset=_set_data,
-                    doc='The raw thumbnail data. Setting it is restricted to ' +
-                        'a buffer in the JPEG format.')
+    data = property(
+        fget=_get_data,
+        fset=_set_data,
+        doc='The raw thumbnail data. Setting it is restricted to ' +
+        'a buffer in the JPEG format.'
+    )

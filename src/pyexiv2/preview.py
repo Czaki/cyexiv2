@@ -28,14 +28,13 @@
 Provide the Preview class.
 """
 
-
 import sys
+
 
 class Preview(object):
     """A preview image (properties and data buffer) embedded in image metadata.
 
     """
-
     def __init__(self, preview):
         self.__preview = preview
 

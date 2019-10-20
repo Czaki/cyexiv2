@@ -30,15 +30,15 @@ XMP specific code.
 
 import libexiv2python
 
-from pyexiv2.utils import (FixedOffset, is_fraction, make_fraction,
-                          GPSCoordinate, DateTimeFormatter)
+from pyexiv2.utils import (
+    FixedOffset, is_fraction, make_fraction, GPSCoordinate, DateTimeFormatter
+)
 
 import datetime
 import re
 
 
 class XmpValueError(ValueError):
-
     """
     Exception raised when failing to parse the *value* of an XMP tag.
 
@@ -57,7 +57,6 @@ class XmpValueError(ValueError):
 
 
 class XmpTag(object):
-
     """Define an XMP tag.
 
     Here is a correspondance table between the XMP types and the possible
@@ -86,7 +85,10 @@ class XmpTag(object):
     # custom regular expression
     _time_zone_re = r'Z|((?P<sign>\+|-)(?P<ohours>\d{2}):(?P<ominutes>\d{2}))'
     _time_re = r'(?P<hours>\d{2})(:(?P<minutes>\d{2})(:(?P<seconds>\d{2})(.(?P<decimal>\d+))?)?(?P<tzd>%s))?' % _time_zone_re
-    _date_re = re.compile(r'(?P<year>\d{4})(-(?P<month>\d{2})(-(?P<day>\d{2})(T(?P<time>%s))?)?)?' % _time_re)
+    _date_re = re.compile(
+        r'(?P<year>\d{4})(-(?P<month>\d{2})(-(?P<day>\d{2})(T(?P<time>%s))?)?)?'
+        % _time_re
+    )
 
     def __init__(self, key, value=None, _tag=None):
         """The tag can be initialized with an optional value which expected
@@ -205,7 +207,9 @@ class XmpTag(object):
             if type_.lower().startswith('closed choice of'):
                 type_ = type[17:]
 
-            self._value = [self._convert_to_python(v, type_) for v in self._raw_value]
+            self._value = [
+                self._convert_to_python(v, type_) for v in self._raw_value
+            ]
 
         elif self.type == 'Lang Alt':
             self._value = {}
@@ -216,7 +220,9 @@ class XmpTag(object):
                     raise XmpValueError(self._raw_value, self.type)
 
         elif self.type.lower().startswith('closed choice of'):
-            self._value = self._convert_to_python(self._raw_value, self.type[17:])
+            self._value = self._convert_to_python(
+                self._raw_value, self.type[17:]
+            )
 
         elif self.type == '':
             self._value = self._raw_value
@@ -253,7 +259,9 @@ class XmpTag(object):
                 value = {'x-default': value}
 
             if not isinstance(value, dict):
-                raise TypeError('Expecting a dictionary mapping language codes to values')
+                raise TypeError(
+                    'Expecting a dictionary mapping language codes to values'
+                )
 
             raw_value = {}
             for k, v in value.items():
@@ -343,13 +351,15 @@ class XmpTag(object):
                     tzinfo = FixedOffset()
 
                 else:
-                    tzinfo = FixedOffset(gd['sign'], int(gd['ohours']),
-                                         int(gd['ominutes']))
+                    tzinfo = FixedOffset(
+                        gd['sign'], int(gd['ohours']), int(gd['ominutes'])
+                    )
 
                 try:
-                    return datetime.datetime(int(gd['year']), month, day,
-                                             int(gd['hours']), int(gd['minutes']),
-                                             seconds, microseconds, tzinfo)
+                    return datetime.datetime(
+                        int(gd['year']), month, day, int(gd['hours']),
+                        int(gd['minutes']), seconds, microseconds, tzinfo
+                    )
                 except ValueError:
                     raise XmpValueError(value, type_)
 
@@ -504,7 +514,7 @@ class XmpTag(object):
             right = '(No value)'
 
         else:
-             right = self._raw_value
+            right = self._raw_value
 
         return '<%s = %s>' % (left, right)
 
@@ -516,6 +526,7 @@ class XmpTag(object):
         key, raw_value = state
         self._tag = libexiv2python._XmpTag(key)
         self.raw_value = raw_value
+
 
 def initialiseXmpParser():
     """Initialise the xmp parser.
@@ -533,6 +544,7 @@ def initialiseXmpParser():
     namespaces will be thread-safe.
     """
     libexiv2python._initialiseXmpParser()
+
 
 def closeXmpParser():
     """Close the xmp parser.
