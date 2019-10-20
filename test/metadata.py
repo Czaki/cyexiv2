@@ -42,7 +42,6 @@ from .testutils import EMPTY_JPG_DATA
 
 
 class TestImageMetadata(unittest.TestCase):
-
     def setUp(self):
         # Create an empty image file
         fd, self.pathname = tempfile.mkstemp(suffix='.jpg')
@@ -76,15 +75,34 @@ class TestImageMetadata(unittest.TestCase):
         self.assertRaises(IOError, getattr, self.metadata, 'exif_keys')
         self.assertRaises(IOError, getattr, self.metadata, 'iptc_keys')
         self.assertRaises(IOError, getattr, self.metadata, 'xmp_keys')
-        self.assertRaises(IOError, self.metadata._get_exif_tag, 'Exif.Image.Make')
-        self.assertRaises(IOError, self.metadata._get_iptc_tag, 'Iptc.Application2.Caption')
+        self.assertRaises(
+            IOError, self.metadata._get_exif_tag, 'Exif.Image.Make'
+        )
+        self.assertRaises(
+            IOError, self.metadata._get_iptc_tag, 'Iptc.Application2.Caption'
+        )
         self.assertRaises(IOError, self.metadata._get_xmp_tag, 'Xmp.dc.format')
-        self.assertRaises(IOError, self.metadata._set_exif_tag, 'Exif.Image.Make', 'foobar')
-        self.assertRaises(IOError, self.metadata._set_iptc_tag, 'Iptc.Application2.Caption', ['foobar'])
-        self.assertRaises(IOError, self.metadata._set_xmp_tag, 'Xmp.dc.format', ('foo', 'bar'))
-        self.assertRaises(IOError, self.metadata._delete_exif_tag, 'Exif.Image.Make')
-        self.assertRaises(IOError, self.metadata._delete_iptc_tag, 'Iptc.Application2.Caption')
-        self.assertRaises(IOError, self.metadata._delete_xmp_tag, 'Xmp.dc.format')
+        self.assertRaises(
+            IOError, self.metadata._set_exif_tag, 'Exif.Image.Make', 'foobar'
+        )
+        self.assertRaises(
+            IOError, self.metadata._set_iptc_tag, 'Iptc.Application2.Caption',
+            ['foobar']
+        )
+        self.assertRaises(
+            IOError, self.metadata._set_xmp_tag, 'Xmp.dc.format',
+            ('foo', 'bar')
+        )
+        self.assertRaises(
+            IOError, self.metadata._delete_exif_tag, 'Exif.Image.Make'
+        )
+        self.assertRaises(
+            IOError, self.metadata._delete_iptc_tag,
+            'Iptc.Application2.Caption'
+        )
+        self.assertRaises(
+            IOError, self.metadata._delete_xmp_tag, 'Xmp.dc.format'
+        )
         self.assertRaises(IOError, getattr, self.metadata, 'comment')
         self.assertRaises(IOError, setattr, self.metadata, 'comment', 'foobar')
         self.assertRaises(IOError, delattr, self.metadata, 'comment')
@@ -191,19 +209,25 @@ class TestImageMetadata(unittest.TestCase):
         self.assertTrue(tag.key in self.metadata.exif_keys)
         self.assertEqual(self.metadata._tags['exif'], {tag.key: tag})
         self.assertTrue(tag.key in self.metadata._image._exifKeys())
-        self.assertEqual(self.metadata._image._getExifTag(tag.key)._getRawValue(),
-                         tag.raw_value)
+        self.assertEqual(
+            self.metadata._image._getExifTag(tag.key)._getRawValue(),
+            tag.raw_value
+        )
 
     def test_set_exif_tag_overwrite(self):
         self.metadata.read()
         self.assertEqual(self.metadata._tags['exif'], {})
         # Overwrite an existing tag
-        tag = ExifTag('Exif.Image.DateTime', datetime.datetime(2009, 3, 20, 20, 32, 0))
+        tag = ExifTag(
+            'Exif.Image.DateTime', datetime.datetime(2009, 3, 20, 20, 32, 0)
+        )
         self.metadata._set_exif_tag(tag.key, tag)
         self.assertEqual(self.metadata._tags['exif'], {tag.key: tag})
         self.assertTrue(tag.key in self.metadata._image._exifKeys())
-        self.assertEqual(self.metadata._image._getExifTag(tag.key)._getRawValue(),
-                         tag.raw_value)
+        self.assertEqual(
+            self.metadata._image._getExifTag(tag.key)._getRawValue(),
+            tag.raw_value
+        )
 
     def test_set_exif_tag_overwrite_already_cached(self):
         self.metadata.read()
@@ -216,8 +240,10 @@ class TestImageMetadata(unittest.TestCase):
         self.metadata._set_exif_tag(key, new_tag)
         self.assertEqual(self.metadata._tags['exif'], {key: new_tag})
         self.assertTrue(key in self.metadata._image._exifKeys())
-        self.assertEqual(self.metadata._image._getExifTag(key)._getRawValue(),
-                         new_tag.raw_value)
+        self.assertEqual(
+            self.metadata._image._getExifTag(key)._getRawValue(),
+            new_tag.raw_value
+        )
 
     def test_set_exif_tag_direct_value_assignment(self):
         self.metadata.read()
@@ -231,8 +257,9 @@ class TestImageMetadata(unittest.TestCase):
         tag = self.metadata._get_exif_tag(key)
         self.assertEqual(tag.value, value)
         self.assertEqual(self.metadata._tags['exif'], {key: tag})
-        self.assertEqual(self.metadata._image._getExifTag(key)._getRawValue(),
-                         tag.raw_value)
+        self.assertEqual(
+            self.metadata._image._getExifTag(key)._getRawValue(), tag.raw_value
+        )
 
     def test_delete_exif_tag_inexistent(self):
         self.metadata.read()
@@ -299,8 +326,10 @@ class TestImageMetadata(unittest.TestCase):
         self.assertTrue(tag.key in self.metadata.iptc_keys)
         self.assertEqual(self.metadata._tags['iptc'], {tag.key: tag})
         self.assertTrue(tag.key in self.metadata._image._iptcKeys())
-        self.assertEqual(self.metadata._image._getIptcTag(tag.key)._getRawValues(),
-                         ['Nobody'])
+        self.assertEqual(
+            self.metadata._image._getIptcTag(tag.key)._getRawValues(),
+            ['Nobody']
+        )
 
     def test_set_iptc_tag_overwrite(self):
         self.metadata.read()
@@ -310,8 +339,10 @@ class TestImageMetadata(unittest.TestCase):
         self.metadata._set_iptc_tag(tag.key, tag)
         self.assertEqual(self.metadata._tags['iptc'], {tag.key: tag})
         self.assertTrue(tag.key in self.metadata._image._iptcKeys())
-        self.assertEqual(self.metadata._image._getIptcTag(tag.key)._getRawValues(),
-                         ['A picture.'])
+        self.assertEqual(
+            self.metadata._image._getIptcTag(tag.key)._getRawValues(),
+            ['A picture.']
+        )
 
     def test_set_iptc_tag_overwrite_already_cached(self):
         self.metadata.read()
@@ -324,8 +355,10 @@ class TestImageMetadata(unittest.TestCase):
         self.metadata._set_iptc_tag(key, new_tag)
         self.assertEqual(self.metadata._tags['iptc'], {key: new_tag})
         self.assertTrue(key in self.metadata._image._iptcKeys())
-        self.assertEqual(self.metadata._image._getIptcTag(key)._getRawValues(),
-                         ['A picture.'])
+        self.assertEqual(
+            self.metadata._image._getIptcTag(key)._getRawValues(),
+            ['A picture.']
+        )
 
     def test_set_iptc_tag_direct_value_assignment(self):
         self.metadata.read()
@@ -339,8 +372,9 @@ class TestImageMetadata(unittest.TestCase):
         tag = self.metadata._get_iptc_tag(key)
         self.assertEqual(tag.value, values)
         self.assertEqual(self.metadata._tags['iptc'], {key: tag})
-        self.assertEqual(self.metadata._image._getIptcTag(key)._getRawValues(),
-                         ['Nobody'])
+        self.assertEqual(
+            self.metadata._image._getIptcTag(key)._getRawValues(), ['Nobody']
+        )
 
     def test_delete_iptc_tag_inexistent(self):
         self.metadata.read()
@@ -401,16 +435,23 @@ class TestImageMetadata(unittest.TestCase):
         self.metadata.read()
         self.assertEqual(self.metadata._tags['xmp'], {})
         # Create a new tag
-        tag = XmpTag('Xmp.dc.title', {'x-default': 'This is not a title',
-                                      'fr-FR': "Ceci n'est pas un titre"})
+        tag = XmpTag(
+            'Xmp.dc.title', {
+                'x-default': 'This is not a title',
+                'fr-FR': "Ceci n'est pas un titre"
+            }
+        )
         self.assertTrue(tag.key not in self.metadata.xmp_keys)
         self.metadata._set_xmp_tag(tag.key, tag)
         self.assertTrue(tag.key in self.metadata.xmp_keys)
         self.assertEqual(self.metadata._tags['xmp'], {tag.key: tag})
         self.assertTrue(tag.key in self.metadata._image._xmpKeys())
-        self.assertEqual(self.metadata._image._getXmpTag(tag.key)._getLangAltValue(),
-                         {'x-default': 'This is not a title',
-                                      'fr-FR': "Ceci n'est pas un titre"})
+        self.assertEqual(
+            self.metadata._image._getXmpTag(tag.key)._getLangAltValue(), {
+                'x-default': 'This is not a title',
+                'fr-FR': "Ceci n'est pas un titre"
+            }
+        )
 
     def test_set_xmp_tag_overwrite(self):
         self.metadata.read()
@@ -420,8 +461,10 @@ class TestImageMetadata(unittest.TestCase):
         self.metadata._set_xmp_tag(tag.key, tag)
         self.assertEqual(self.metadata._tags['xmp'], {tag.key: tag})
         self.assertTrue(tag.key in self.metadata._image._xmpKeys())
-        self.assertEqual(self.metadata._image._getXmpTag(tag.key)._getTextValue(),
-                         tag.raw_value)
+        self.assertEqual(
+            self.metadata._image._getXmpTag(tag.key)._getTextValue(),
+            tag.raw_value
+        )
 
     def test_set_xmp_tag_overwrite_already_cached(self):
         self.metadata.read()
@@ -434,8 +477,10 @@ class TestImageMetadata(unittest.TestCase):
         self.metadata._set_xmp_tag(key, new_tag)
         self.assertEqual(self.metadata._tags['xmp'], {key: new_tag})
         self.assertTrue(key in self.metadata._image._xmpKeys())
-        self.assertEqual(self.metadata._image._getXmpTag(key)._getArrayValue(),
-                         ['hello', 'world'])
+        self.assertEqual(
+            self.metadata._image._getXmpTag(key)._getArrayValue(),
+            ['hello', 'world']
+        )
 
     def test_set_xmp_tag_direct_value_assignment(self):
         self.metadata.read()
@@ -449,8 +494,12 @@ class TestImageMetadata(unittest.TestCase):
         tag = self.metadata._get_xmp_tag(key)
         self.assertEqual(tag.value, value)
         self.assertEqual(self.metadata._tags['xmp'], {key: tag})
-        self.assertEqual(self.metadata._image._getXmpTag(key)._getLangAltValue(),
-                        {'x-default': 'Landscape', 'fr-FR': "Paysage"})
+        self.assertEqual(
+            self.metadata._image._getXmpTag(key)._getLangAltValue(), {
+                'x-default': 'Landscape',
+                'fr-FR': "Paysage"
+            }
+        )
 
     def test_delete_xmp_tag_inexistent(self):
         self.metadata.read()
@@ -493,8 +542,10 @@ class TestImageMetadata(unittest.TestCase):
         tag = self.metadata[key]
         self.assertTrue(isinstance(tag, XmpTag))
         # Try to get nonexistent tags
-        keys = ('Exif.Image.SamplesPerPixel', 'Iptc.Application2.FixtureId',
-                'Xmp.xmp.Rating', 'Wrong.Noluck.Raise')
+        keys = (
+            'Exif.Image.SamplesPerPixel', 'Iptc.Application2.FixtureId',
+            'Xmp.xmp.Rating', 'Wrong.Noluck.Raise'
+        )
         for key in keys:
             self.assertRaises(KeyError, self.metadata.__getitem__, key)
 
@@ -549,8 +600,10 @@ class TestImageMetadata(unittest.TestCase):
         self.assertFalse(key in self.metadata._keys['xmp'])
         self.assertFalse(key in self.metadata._tags['xmp'])
         # Try to delete nonexistent tags
-        keys = ('Exif.Image.SamplesPerPixel', 'Iptc.Application2.FixtureId',
-                'Xmp.xmp.Rating', 'Wrong.Noluck.Raise')
+        keys = (
+            'Exif.Image.SamplesPerPixel', 'Iptc.Application2.FixtureId',
+            'Xmp.xmp.Rating', 'Wrong.Noluck.Raise'
+        )
         for key in keys:
             self.assertRaises(KeyError, self.metadata.__delitem__, key)
 
@@ -569,7 +622,9 @@ class TestImageMetadata(unittest.TestCase):
         self.metadata.read()
         key = 'Bleh.Image.DateTime'
         self.assertRaises(KeyError, self.metadata.__getitem__, key)
-        self.assertRaises(KeyError, self.metadata.__setitem__, key, datetime.date.today())
+        self.assertRaises(
+            KeyError, self.metadata.__setitem__, key, datetime.date.today()
+        )
         self.assertRaises(KeyError, self.metadata.__delitem__, key)
 
     ##########################
@@ -615,7 +670,9 @@ class TestImageMetadata(unittest.TestCase):
             self.assertEqual(self.other._keys[family], None)
             self.assertEqual(self.other._tags[family], {})
             keys = getattr(self.metadata, '%s_keys' % family)
-            self.assertEqual(getattr(self.other._image, '_%sKeys' % family)(), keys)
+            self.assertEqual(
+                getattr(self.other._image, '_%sKeys' % family)(), keys
+            )
             self.assertEqual(getattr(self.other, '%s_keys' % family), keys)
 
         for key in self.metadata.exif_keys:
@@ -646,20 +703,25 @@ class TestImageMetadata(unittest.TestCase):
         key = 'Exif.Image.DateTimeOriginal'
         correctDate = datetime.datetime(2007, 3, 11)
         incorrectDate = datetime.datetime(2009, 3, 25)
-        tag_date = ExifTag(key,correctDate)
-        false_tag_date = ExifTag(key,incorrectDate)
+        tag_date = ExifTag(key, correctDate)
+        false_tag_date = ExifTag(key, incorrectDate)
         self.clean[key] = tag_date
 
         self.assertEqual(len(self.clean), 1)
         self.assertTrue('Exif.Image.DateTimeOriginal' in self.clean)
-        self.assertEqual(self.clean.get('Exif.Image.DateTimeOriginal', false_tag_date), tag_date)
-        self.assertEqual(self.clean.get('Exif.Image.DateTime', tag_date), tag_date)
+        self.assertEqual(
+            self.clean.get('Exif.Image.DateTimeOriginal', false_tag_date),
+            tag_date
+        )
+        self.assertEqual(
+            self.clean.get('Exif.Image.DateTime', tag_date), tag_date
+        )
 
         key = 'Exif.Photo.UserComment'
-        tag = ExifTag(key,'UserComment')
+        tag = ExifTag(key, 'UserComment')
         self.clean[key] = tag
         key = 'Iptc.Application2.Caption'
-        tag = IptcTag(key,['Caption'])
+        tag = IptcTag(key, ['Caption'])
         self.clean[key] = tag
         key = 'Xmp.dc.subject'
         tag = XmpTag(key, ['subject', 'values'])
@@ -681,9 +743,11 @@ class TestImageMetadata(unittest.TestCase):
     ###########################
 
     def _test_thumbnail_tags(self, there):
-        keys = ('Exif.Thumbnail.Compression',
-                'Exif.Thumbnail.JPEGInterchangeFormat',
-                'Exif.Thumbnail.JPEGInterchangeFormatLength')
+        keys = (
+            'Exif.Thumbnail.Compression',
+            'Exif.Thumbnail.JPEGInterchangeFormat',
+            'Exif.Thumbnail.JPEGInterchangeFormatLength'
+        )
         for key in keys:
             self.assertEqual(key in self.metadata.exif_keys, there)
 
@@ -799,7 +863,9 @@ class TestImageMetadata(unittest.TestCase):
 
     def test_set_iptc_charset_utf8(self):
         self.metadata.read()
-        self.assertTrue('Iptc.Envelope.CharacterSet' not in self.metadata.iptc_keys)
+        self.assertTrue(
+            'Iptc.Envelope.CharacterSet' not in self.metadata.iptc_keys
+        )
         self.assertEqual(self.metadata.iptc_charset, 'ascii')
         values = ('utf-8', 'utf8', 'u8', 'utf', 'utf_8')
         for value in values:
@@ -810,20 +876,26 @@ class TestImageMetadata(unittest.TestCase):
 
     def test_set_invalid_iptc_charset(self):
         self.metadata.read()
-        self.assertTrue('Iptc.Envelope.CharacterSet' not in self.metadata.iptc_keys)
+        self.assertTrue(
+            'Iptc.Envelope.CharacterSet' not in self.metadata.iptc_keys
+        )
         values = ('invalid', 'utf-9', '3.14')
         for value in values:
-            self.assertRaises(ValueError, self.metadata.__setattr__,
-                              'iptc_charset', value)
+            self.assertRaises(
+                ValueError, self.metadata.__setattr__, 'iptc_charset', value
+            )
 
     def test_set_unhandled_iptc_charset(self):
         # At the moment, the only charset handled is UTF-8.
         self.metadata.read()
-        self.assertTrue('Iptc.Envelope.CharacterSet' not in self.metadata.iptc_keys)
+        self.assertTrue(
+            'Iptc.Envelope.CharacterSet' not in self.metadata.iptc_keys
+        )
         values = ('ascii', 'iso8859_15', 'shift_jis')
         for value in values:
-            self.assertRaises(ValueError, self.metadata.__setattr__,
-                              'iptc_charset', value)
+            self.assertRaises(
+                ValueError, self.metadata.__setattr__, 'iptc_charset', value
+            )
 
     def test_delete_iptc_charset(self):
         self.metadata.read()

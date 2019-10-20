@@ -29,294 +29,429 @@ import unittest
 
 from pyexiv2.exif import ExifTag, ExifValueError
 from pyexiv2.metadata import ImageMetadata
-from pyexiv2.utils import make_fraction
 
-from . import testutils
-
-import datetime
-import os.path
+from .testutils import get_absolute_file_path, md5sum_file, D, DT, FR
 
 
 class TestExifTag(unittest.TestCase):
+    def do_test_convert_to_python(self, name, tagtype, valid=[], invalid=[]):
+        tag = ExifTag(name)
+        self.assertEqual(tag.type, tagtype)
+        for s, exp in valid:
+            self.assertEqual(tag._convert_to_python(s), exp)
+        for s in invalid:
+            try:
+                self.assertRaises(ExifValueError, tag._convert_to_python, s)
+            except AssertionError as e:
+                e.args = (e.args[0] + " (s=%s)" % repr(s), )
+                raise
+
+    def do_test_convert_to_string(self, name, tagtype, valid=[], invalid=[]):
+        tag = ExifTag(name)
+        self.assertEqual(tag.type, tagtype)
+        for v, exp in valid:
+            self.assertEqual(tag._convert_to_string(v), exp)
+        for v in invalid:
+            try:
+                self.assertRaises(ExifValueError, tag._convert_to_string, v)
+            except AssertionError as e:
+                e.args = (e.args[0] + " (v=%s)" % repr(v), )
+                raise
 
     def test_convert_to_python_ascii(self):
-        # Valid values: datetimes
-        tag = ExifTag('Exif.Image.DateTime')
-        self.assertEqual(tag.type, 'Ascii')
-        self.assertEqual(tag._convert_to_python('2009-03-01 12:46:51'),
-                         datetime.datetime(2009, 3, 1, 12, 46, 51))
-        self.assertEqual(tag._convert_to_python('2009:03:01 12:46:51'),
-                         datetime.datetime(2009, 3, 1, 12, 46, 51))
-        self.assertEqual(tag._convert_to_python('2009-03-01T12:46:51Z'),
-                         datetime.datetime(2009, 3, 1, 12, 46, 51))
+        # Unstructured text fields (despite "Ascii", yes they can
+        # contain unicode)
+        self.do_test_convert_to_python(
+            'Exif.Image.Copyright',
+            'Ascii',
+            valid=[
+                ('Some text.', 'Some text.'),
+                (
+                    'Some text with exotic chàräctérʐ.',
+                    'Some text with exotic chàräctérʐ.'
+                ),
+            ]
+        )
 
-        # Valid values: dates
-        tag = ExifTag('Exif.GPSInfo.GPSDateStamp')
-        self.assertEqual(tag.type, 'Ascii')
-        self.assertEqual(tag._convert_to_python('2009:08:04'),
-                         datetime.date(2009, 8, 4))
+        # Timestamps represented with text strings
+        self.do_test_convert_to_python(
+            'Exif.Image.DateTime',
+            'Ascii',
+            valid=[
+                # Valid datetimes are converted to datetime objects
+                ('2009-03-01 12:46:51', DT(2009, 3, 1, 12, 46, 51, tz=None)),
+                ('2009:03:01 12:46:51', DT(2009, 3, 1, 12, 46, 51, tz=None)),
+                ('2009-03-01T12:46:51Z', DT(2009, 3, 1, 12, 46, 51, tz=None)),
 
-        # Valid values: strings
-        tag = ExifTag('Exif.Image.Copyright')
-        self.assertEqual(tag.type, 'Ascii')
-        self.assertEqual(tag._convert_to_python('Some text.'), 'Some text.')
-        self.assertEqual(tag._convert_to_python('Some text with exotic chàräctérʐ.'),
-                         'Some text with exotic chàräctérʐ.')
+                # Invalid datetimes are preserved as strings
+                ('2009-13-01 12:46:51', '2009-13-01 12:46:51'),
+                ('2009-12-01', '2009-12-01'),
+            ]
+        )
 
-        # Invalid values: datetimes
-        tag = ExifTag('Exif.Image.DateTime')
-        self.assertEqual(tag.type, 'Ascii')
-        self.assertEqual(tag._convert_to_python('2009-13-01 12:46:51'),
-                         '2009-13-01 12:46:51')
-        self.assertEqual(tag._convert_to_python('2009-12-01'), '2009-12-01')
+        # Datestamps represented with text strings
+        self.do_test_convert_to_python(
+            'Exif.GPSInfo.GPSDateStamp',
+            'Ascii',
+            valid=[
+                # Valid dates are converted to date objects
+                ('2009:08:04', D(2009, 8, 4)),
 
-        # Invalid values: dates
-        tag = ExifTag('Exif.GPSInfo.GPSDateStamp')
-        self.assertEqual(tag.type, 'Ascii')
-        self.assertEqual(tag._convert_to_python('2009:13:01'), '2009:13:01')
-        self.assertEqual(tag._convert_to_python('2009-12-01'), '2009-12-01')
+                # Invalid dates are preserved as strings
+                ('2009:13:01', '2009:13:01'),
+                ('2009-12-01', '2009-12-01'),
+            ]
+        )
 
     def test_convert_to_string_ascii(self):
-        # Valid values: datetimes
-        tag = ExifTag('Exif.Image.DateTime')
-        self.assertEqual(tag.type, 'Ascii')
-        self.assertEqual(tag._convert_to_string(datetime.datetime(2009, 3, 1, 12, 54, 28)),
-                         '2009:03:01 12:54:28')
-        self.assertEqual(tag._convert_to_string(datetime.date(2009, 3, 1)),
-                         '2009:03:01 00:00:00')
-        self.assertEqual(tag._convert_to_string(datetime.datetime(1899, 12, 31, 23, 59, 59)),
-                         '1899:12:31 23:59:59')
-        self.assertEqual(tag._convert_to_string(datetime.date(1899, 12, 31)),
-                         '1899:12:31 00:00:00')
+        # Unstructured text fields
+        self.do_test_convert_to_string(
+            'Exif.Image.Copyright',
+            'Ascii',
+            valid=[
+                ('Some text.', 'Some text.'),
+                (
+                    'Some text with exotic chàräctérʐ.',
+                    'Some text with exotic chàräctérʐ.'
+                ),
+            ]
+        )
 
-        # Valid values: dates
-        tag = ExifTag('Exif.GPSInfo.GPSDateStamp')
-        self.assertEqual(tag.type, 'Ascii')
-        self.assertEqual(tag._convert_to_string(datetime.date(2009, 3, 1)),
-                         '2009:03:01')
-        self.assertEqual(tag._convert_to_string(datetime.date(1899, 12, 31)),
-                         '1899:12:31')
+        # Timestamp fields accept either date or datetime objects
+        self.do_test_convert_to_string(
+            'Exif.Image.DateTime',
+            'Ascii',
+            valid=[
+                (DT(2009, 3, 1, 12, 54, 28), '2009:03:01 12:54:28'),
+                (D(2009, 3, 1), '2009:03:01 00:00:00'),
+                (DT(1899, 12, 31, 23, 59, 59), '1899:12:31 23:59:59'),
+                (D(1899, 12, 31), '1899:12:31 00:00:00'),
+            ]
+        )
 
-        # Valid values: strings
-        tag = ExifTag('Exif.Image.Copyright')
-        self.assertEqual(tag.type, 'Ascii')
-        self.assertEqual(tag._convert_to_string('Some text'), 'Some text')
-        self.assertEqual(tag._convert_to_string('Some text with exotic chàräctérʐ.'),
-                         'Some text with exotic chàräctérʐ.')
+        # Datestamp fields accept date objects
+        self.do_test_convert_to_string(
+            'Exif.GPSInfo.GPSDateStamp',
+            'Ascii',
+            valid=[
+                (D(2009, 3, 1), '2009:03:01'),
+                (D(1899, 12, 31), '1899:12:31'),
+            ]
+        )
 
     def test_convert_to_python_byte(self):
-        # Valid values
-        tag = ExifTag('Exif.GPSInfo.GPSVersionID')
-        self.assertEqual(tag.type, 'Byte')
-        self.assertEqual(tag._convert_to_python('D'), 'D')
+        self.do_test_convert_to_python(
+            'Exif.GPSInfo.GPSVersionID', 'Byte', valid=[
+                ('D', 'D'),
+            ]
+        )
 
     def test_convert_to_string_byte(self):
-        # Valid values
-        tag = ExifTag('Exif.GPSInfo.GPSVersionID')
-        self.assertEqual(tag.type, 'Byte')
-        self.assertEqual(tag._convert_to_string('Some text'), b'Some text')
-
-        # Invalid values
-        self.assertRaises(ExifValueError, tag._convert_to_string, None)
+        self.do_test_convert_to_string(
+            'Exif.GPSInfo.GPSVersionID',
+            'Byte',
+            valid=[
+                ('D', b'D'),
+            ],
+            invalid=[
+                None,
+                -57,
+                3.14,
+            ]
+        )
 
     def test_convert_to_python_sbyte(self):
-        # Valid values
-        tag = ExifTag('Exif.Pentax.Temperature')
-        self.assertEqual(tag.type, 'SByte')
-        self.assertEqual(tag._convert_to_python('15'), '15')
+        self.do_test_convert_to_python(
+            'Exif.Pentax.Temperature', 'SByte', valid=[
+                ('15', '15'),
+            ]
+        )
 
     def test_convert_to_string_sbyte(self):
-        # Valid values
-        tag = ExifTag('Exif.Pentax.Temperature')
-        self.assertEqual(tag.type, 'SByte')
-        self.assertEqual(tag._convert_to_string('13'), b'13')
-
-        # Invalid values
-        self.assertRaises(ExifValueError, tag._convert_to_string, None)
+        self.do_test_convert_to_string(
+            'Exif.Pentax.Temperature',
+            'SByte',
+            valid=[
+                ('13', b'13'),
+                ('-57', b'-57'),
+            ],
+            invalid=[
+                None,
+            ]
+        )
 
     def test_convert_to_python_comment(self):
-        # Valid values
-        tag = ExifTag('Exif.Photo.UserComment')
-        self.assertEqual(tag.type, 'Comment')
-        self.assertEqual(tag._convert_to_python('A comment'), 'A comment')
-        for charset in ('Ascii', 'Jis', 'Unicode', 'Undefined', 'InvalidCharsetId'):
-            self.assertEqual(tag._convert_to_python('charset="%s" A comment' % charset), 'A comment')
-        for charset in ('Ascii', 'Jis', 'Undefined', 'InvalidCharsetId'):
-            self.assertNotEqual(tag._convert_to_bytes('charset="%s" déjà vu' % charset), 'déjà vu')
+        self.do_test_convert_to_python(
+            'Exif.Photo.UserComment',
+            'Comment',
+            valid=[
+                ('A comment', 'A comment'),
+                ('charset="Ascii" A comment', 'A comment'),
+                ('charset="Unicode" A comment', 'A comment'),
+                ('charset="Jis" A comment', 'A comment'),
+                ('charset="Undefined" A comment', 'A comment'),
+                ('charset="InvalidCharsetId" A comment', 'A comment'),
+
+                # charset= is ignored when converting to python
+                ('déjà vu', 'déjà vu'),
+                ('charset="Ascii" déjà vu', 'déjà vu'),
+                ('charset="Unicode" déjà vu', 'déjà vu'),
+                ('charset="Jis" déjà vu', 'déjà vu'),
+                ('charset="Undefined" déjà vu', 'déjà vu'),
+                ('charset="InvalidCharsetId" déjà vu', 'déjà vu'),
+            ]
+        )
 
     def test_convert_to_string_comment(self):
-        # Valid values
-        tag = ExifTag('Exif.Photo.UserComment')
-        self.assertEqual(tag.type, 'Comment')
-        self.assertEqual(tag._convert_to_string('A comment'), b'A comment')
-        charsets = ('Ascii', 'Jis', 'Unicode', 'Undefined')
-        for charset in charsets:
-            tag.raw_value = 'charset="%s" foo' % charset
-            self.assertEqual(tag._convert_to_string('A comment'), b'A comment')
-            self.assertEqual(tag._convert_to_string('déjà vu'), b'd\xc3\xa9j\xc3\xa0 vu')
+        self.do_test_convert_to_string(
+            'Exif.Photo.UserComment',
+            'Comment',
+            valid=[
+                ('A comment', b'A comment'),
+                ('charset="Ascii" A comment', b'charset="Ascii" A comment'),
+                (
+                    'charset="Unicode" A comment',
+                    b'charset="Unicode" A comment'
+                ),
+                ('charset="Jis" A comment', b'charset="Jis" A comment'),
+                (
+                    'charset="Undefined" A comment',
+                    b'charset="Undefined" A comment'
+                ),
+                (
+                    'charset="InvalidCharsetId" A comment',
+                    b'charset="InvalidCharsetId" A comment'
+                ),
+
+                # when converting to bytes, if charset= is *known* not to
+                # be able to represent the input string, None is returned
+                ('déjà vu', b'd\xc3\xa9j\xc3\xa0 vu'),
+                ('charset="Ascii" déjà vu', None),
+                ('charset="Jis" déjà vu', None),
+                (
+                    'charset="Unicode" déjà vu',
+                    b'charset="Unicode" d\xc3\xa9j\xc3\xa0 vu'
+                ),
+                (
+                    'charset="Undefined" déjà vu',
+                    b'charset="Undefined" d\xc3\xa9j\xc3\xa0 vu'
+                ),
+                (
+                    'charset="InvalidCharsetId" déjà vu',
+                    b'charset="InvalidCharsetId" d\xc3\xa9j\xc3\xa0 vu'
+                ),
+            ]
+        )
 
     def test_convert_to_python_short(self):
-        # Valid values
-        tag = ExifTag('Exif.Image.BitsPerSample')
-        self.assertEqual(tag.type, 'Short')
-        self.assertEqual(tag._convert_to_python('8'), 8)
-        self.assertEqual(tag._convert_to_python('+5628'), 5628)
-
-        # Invalid values
-        self.assertRaises(ExifValueError, tag._convert_to_python, 'abc')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '5,64')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '47.0001')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '1E3')
+        self.do_test_convert_to_python(
+            'Exif.Image.BitsPerSample',
+            'Short',
+            valid=[
+                ('8', 8),
+                ('+5628', 5628),
+            ],
+            invalid=[
+                'abc',
+                '5,64',
+                '47.0001',
+                '1E3',
+            ]
+        )
 
     def test_convert_to_string_short(self):
         # Valid values
-        tag = ExifTag('Exif.Image.BitsPerSample')
-        self.assertEqual(tag.type, 'Short')
-        self.assertEqual(tag._convert_to_string(123), '123')
-
-        # Invalid values
-        self.assertRaises(ExifValueError, tag._convert_to_string, -57)
-        self.assertRaises(ExifValueError, tag._convert_to_string, 'invalid')
-        self.assertRaises(ExifValueError, tag._convert_to_string, 3.14)
+        self.do_test_convert_to_string(
+            'Exif.Image.BitsPerSample',
+            'Short',
+            valid=[
+                (123, '123'),
+            ],
+            invalid=[
+                -57,
+                'invalid',
+                3.14,
+            ]
+        )
 
     def test_convert_to_python_sshort(self):
         # Valid values
-        tag = ExifTag('Exif.Image.TimeZoneOffset')
-        self.assertEqual(tag.type, 'SShort')
-        self.assertEqual(tag._convert_to_python('8'), 8)
-        self.assertEqual(tag._convert_to_python('+5'), 5)
-        self.assertEqual(tag._convert_to_python('-6'), -6)
-
-        # Invalid values
-        self.assertRaises(ExifValueError, tag._convert_to_python, 'abc')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '5,64')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '47.0001')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '1E3')
+        self.do_test_convert_to_python(
+            'Exif.Image.TimeZoneOffset',
+            'SShort',
+            valid=[
+                ('8', 8),
+                ('+5', 5),
+                ('-6', -6),
+            ],
+            invalid=[
+                'abc',
+                '5,64',
+                '47.0001',
+                '1E3',
+            ]
+        )
 
     def test_convert_to_string_sshort(self):
         # Valid values
-        tag = ExifTag('Exif.Image.TimeZoneOffset')
-        self.assertEqual(tag.type, 'SShort')
-        self.assertEqual(tag._convert_to_string(12), '12')
-        self.assertEqual(tag._convert_to_string(-3), '-3')
-
-        # Invalid values
-        self.assertRaises(ExifValueError, tag._convert_to_string, 'invalid')
-        self.assertRaises(ExifValueError, tag._convert_to_string, 3.14)
+        self.do_test_convert_to_string(
+            'Exif.Image.TimeZoneOffset',
+            'SShort',
+            valid=[
+                (12, '12'),
+                (-3, '-3'),
+            ],
+            invalid=[
+                'invalid',
+                3.14,
+            ]
+        )
 
     def test_convert_to_python_long(self):
-        # Valid values
-        tag = ExifTag('Exif.Image.ImageWidth')
-        self.assertEqual(tag.type, 'Long')
-        self.assertEqual(tag._convert_to_python('8'), 8)
-        self.assertEqual(tag._convert_to_python('+5628'), 5628)
-
-        # Invalid values
-        self.assertRaises(ExifValueError, tag._convert_to_python, 'abc')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '5,64')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '47.0001')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '1E3')
+        self.do_test_convert_to_python(
+            'Exif.Image.ImageWidth',
+            'Long',
+            valid=[
+                ('8', 8),
+                ('+5628', 5628),
+            ],
+            invalid=[
+                'abc',
+                '5,64',
+                '47.0001',
+                '1E3',
+            ]
+        )
 
     def test_convert_to_string_long(self):
         # Valid values
-        tag = ExifTag('Exif.Image.ImageWidth')
-        self.assertEqual(tag.type, 'Long')
-        self.assertEqual(tag._convert_to_string(123), '123')
-        self.assertEqual(tag._convert_to_string(678024), '678024')
-
-        # Invalid values
-        self.assertRaises(ExifValueError, tag._convert_to_string, -57)
-        self.assertRaises(ExifValueError, tag._convert_to_string, 'invalid')
-        self.assertRaises(ExifValueError, tag._convert_to_string, 3.14)
+        self.do_test_convert_to_string(
+            'Exif.Image.ImageWidth',
+            'Long',
+            valid=[
+                (123, '123'),
+                (678024, '678024'),
+            ],
+            invalid=[
+                -57,
+                'invalid',
+                3.14,
+            ]
+        )
 
     def test_convert_to_python_slong(self):
         # Valid values
-        tag = ExifTag('Exif.OlympusCs.ManometerReading')
-        self.assertEqual(tag.type, 'SLong')
-        self.assertEqual(tag._convert_to_python('23'), 23)
-        self.assertEqual(tag._convert_to_python('+5628'), 5628)
-        self.assertEqual(tag._convert_to_python('-437'), -437)
-
-        # Invalid values
-        self.assertRaises(ExifValueError, tag._convert_to_python, 'abc')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '5,64')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '47.0001')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '1E3')
+        self.do_test_convert_to_python(
+            'Exif.OlympusCs.ManometerReading',
+            'SLong',
+            valid=[
+                ('23', 23),
+                ('+5628', 5628),
+                ('-437', -437),
+            ],
+            invalid=[
+                'abc',
+                '5,64',
+                '47.0001',
+                '1E3',
+            ]
+        )
 
     def test_convert_to_string_slong(self):
         # Valid values
-        tag = ExifTag('Exif.OlympusCs.ManometerReading')
-        self.assertEqual(tag.type, 'SLong')
-        self.assertEqual(tag._convert_to_string(123), '123')
-        self.assertEqual(tag._convert_to_string(678024), '678024')
-        self.assertEqual(tag._convert_to_string(-437), '-437')
-
-        # Invalid values
-        self.assertRaises(ExifValueError, tag._convert_to_string, 'invalid')
-        self.assertRaises(ExifValueError, tag._convert_to_string, 3.14)
+        self.do_test_convert_to_string(
+            'Exif.OlympusCs.ManometerReading',
+            'SLong',
+            valid=[
+                (123, '123'),
+                (678024, '678024'),
+                (-437, '-437'),
+            ],
+            invalid=[
+                'invalid',
+                3.14,
+            ]
+        )
 
     def test_convert_to_python_rational(self):
         # Valid values
-        tag = ExifTag('Exif.Image.XResolution')
-        self.assertEqual(tag.type, 'Rational')
-        self.assertEqual(tag._convert_to_python('5/3'), make_fraction(5, 3))
-
-        # Invalid values
-        self.assertRaises(ExifValueError, tag._convert_to_python, 'invalid')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '-5/3')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '5 / 3')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '5/-3')
+        self.do_test_convert_to_python(
+            'Exif.Image.XResolution',
+            'Rational',
+            valid=[
+                ('5/3', FR(5, 3)),
+            ],
+            invalid=[
+                'invalid',
+                '-5/3',
+                '5 / 3',
+                '5/-3',
+            ]
+        )
 
     def test_convert_to_string_rational(self):
-        # Valid values
-        tag = ExifTag('Exif.Image.XResolution')
-        self.assertEqual(tag.type, 'Rational')
-        self.assertEqual(tag._convert_to_string(make_fraction(5, 3)), '5/3')
-
-        # Invalid values
-        self.assertRaises(ExifValueError, tag._convert_to_string, 'invalid')
-        self.assertRaises(ExifValueError,
-                              tag._convert_to_string, make_fraction(-5, 3))
+        self.do_test_convert_to_string(
+            'Exif.Image.XResolution',
+            'Rational',
+            valid=[(FR(5, 3), '5/3')],
+            invalid=[
+                'invalid',
+                FR(-5, 3),
+            ]
+        )
 
     def test_convert_to_python_srational(self):
-        # Valid values
-        tag = ExifTag('Exif.Image.BaselineExposure')
-        self.assertEqual(tag.type, 'SRational')
-        self.assertEqual(tag._convert_to_python('5/3'), make_fraction(5, 3))
-        self.assertEqual(tag._convert_to_python('-5/3'), make_fraction(-5, 3))
-
-        # Invalid values
-        self.assertRaises(ExifValueError, tag._convert_to_python, 'invalid')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '5 / 3')
-        self.assertRaises(ExifValueError, tag._convert_to_python, '5/-3')
+        self.do_test_convert_to_python(
+            'Exif.Image.BaselineExposure',
+            'SRational',
+            valid=[
+                ('5/3', FR(5, 3)),
+                ('-5/3', FR(-5, 3)),
+            ],
+            invalid=[
+                'invalid',
+                '5 / 3',
+                '5/-3',
+            ]
+        )
 
     def test_convert_to_string_srational(self):
-        # Valid values
-        tag = ExifTag('Exif.Image.BaselineExposure')
-        self.assertEqual(tag.type, 'SRational')
-        self.assertEqual(tag._convert_to_string(make_fraction(5, 3)), '5/3')
-        self.assertEqual(tag._convert_to_string(make_fraction(-5, 3)), '-5/3')
-
-        # Invalid values
-        self.assertRaises(ExifValueError, tag._convert_to_string, 'invalid')
+        self.do_test_convert_to_string(
+            'Exif.Image.BaselineExposure',
+            'SRational',
+            valid=[
+                (FR(5, 3), '5/3'),
+                (FR(-5, 3), '-5/3'),
+            ],
+            invalid=[
+                'invalid',
+            ]
+        )
 
     def test_convert_to_python_undefined(self):
-        # Valid values
-        tag = ExifTag('Exif.Photo.ExifVersion')
-        self.assertEqual(tag.type, 'Undefined')
-        self.assertEqual(tag._convert_to_python('48 49 48 48'), '0100')
+        self.do_test_convert_to_python(
+            'Exif.Photo.ExifVersion',
+            'Undefined',
+            valid=[
+                ('48 49 48 48', '0100'),
+            ]
+        )
 
     def test_convert_to_string_undefined(self):
         # Valid values
-        tag = ExifTag('Exif.Photo.ExifVersion')
-        self.assertEqual(tag.type, 'Undefined')
-        self.assertEqual(tag._convert_to_string('0100'), '48 49 48 48')
-
-        # Invalid values
-        self.assertRaises(ExifValueError, tag._convert_to_string, 3)
+        self.do_test_convert_to_string(
+            'Exif.Photo.ExifVersion',
+            'Undefined',
+            valid=[
+                ('0100', '48 49 48 48'),
+            ],
+            invalid=[
+                3,
+            ]
+        )
 
     def test_set_value(self):
-        tag = ExifTag('Exif.Thumbnail.Orientation', 1) # top, left
+        tag = ExifTag('Exif.Thumbnail.Orientation', 1)  # top, left
         old_value = tag.value
         tag.value = 2
         self.assertNotEqual(tag.value, old_value)
@@ -338,9 +473,9 @@ class TestExifTag(unittest.TestCase):
         self.assertEqual(tag2.type, 'Undefined')
         self.assertRaises(ValueError, getattr, tag2, 'value')
 
-        filepath = testutils.get_absolute_file_path(os.path.join('data', 'pentax-makernote.jpg'))
+        filepath = get_absolute_file_path('data', 'pentax-makernote.jpg')
         checksum = '646804b309a4a2d31feafe9bffc5d7f0'
-        self.assertTrue(testutils.CheckFileSum(filepath, checksum))
+        self.assertEqual(md5sum_file(filepath), checksum)
         metadata = ImageMetadata(filepath)
         metadata.read()
         tag1 = metadata[tag1.key]

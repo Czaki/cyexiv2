@@ -27,66 +27,47 @@
 
 import unittest
 
-from pyexiv2.utils import GPSCoordinate
+from pyexiv2.utils import GPSCoordinate as GPS
 
 
 class TestGPSCoordinate(unittest.TestCase):
-
     def test_constructor(self):
-        r = GPSCoordinate(62, 58, 2, 'W')
+        r = GPS(62, 58, 2, 'W')
         self.assertEqual(r.degrees, 62)
         self.assertEqual(r.minutes, 58)
         self.assertEqual(r.seconds, 2)
         self.assertEqual(r.direction, 'W')
-        r = GPSCoordinate(92, 58, 2, 'W')
+        r = GPS(92, 58, 2, 'W')
         self.assertEqual(r.degrees, 92)
         self.assertEqual(r.minutes, 58)
         self.assertEqual(r.seconds, 2)
         self.assertEqual(r.direction, 'W')
-        self.assertRaises(ValueError, GPSCoordinate, -23, 58, 2, 'W')
-        self.assertRaises(ValueError, GPSCoordinate, 91, 58, 2, 'S')
-        self.assertRaises(ValueError, GPSCoordinate, 62, -23, 2, 'W')
-        self.assertRaises(ValueError, GPSCoordinate, 62, 61, 2, 'W')
-        self.assertRaises(ValueError, GPSCoordinate, 62, 58, -23, 'W')
-        self.assertRaises(ValueError, GPSCoordinate, 62, 58, 61, 'W')
-        self.assertRaises(ValueError, GPSCoordinate, 62, 58, 2, 'A')
+        self.assertRaises(ValueError, GPS, -23, 58, 2, 'W')
+        self.assertRaises(ValueError, GPS, 91, 58, 2, 'S')
+        self.assertRaises(ValueError, GPS, 62, -23, 2, 'W')
+        self.assertRaises(ValueError, GPS, 62, 61, 2, 'W')
+        self.assertRaises(ValueError, GPS, 62, 58, -23, 'W')
+        self.assertRaises(ValueError, GPS, 62, 58, 61, 'W')
+        self.assertRaises(ValueError, GPS, 62, 58, 2, 'A')
 
     def test_read_only(self):
-        r = GPSCoordinate(62, 58, 2, 'W')
-        try:
-            r.degrees = 5
-        except AttributeError:
-            pass
-        else:
-            self.fail('Degrees is not read-only.')
-        try:
-            r.minutes = 5
-        except AttributeError:
-            pass
-        else:
-            self.fail('Minutes is not read-only.')
-        try:
-            r.seconds = 5
-        except AttributeError:
-            pass
-        else:
-            self.fail('Seconds is not read-only.')
-        try:
-            r.direction = 'S'
-        except AttributeError:
-            pass
-        else:
-            self.fail('Direction is not read-only.')
+        r = GPS(62, 58, 2, 'W')
+        trials = [
+            ('degrees', 5),
+            ('minutes', 5),
+            ('seconds', 5),
+            ('direction', 'S'),
+        ]
+        for attr, val in trials:
+            self.assertRaises(AttributeError, setattr, r, attr, val)
 
     def test_from_string(self):
-        self.assertEqual(GPSCoordinate.from_string('54,59.380000N'),
-                         GPSCoordinate(54, 59, 23, 'N'))
-        self.assertEqual(GPSCoordinate.from_string('1,54.850000W'),
-                         GPSCoordinate(1, 54, 51, 'W'))
-        self.assertRaises(ValueError, GPSCoordinate.from_string, '51N')
-        self.assertRaises(ValueError, GPSCoordinate.from_string, '48 24 3 S')
-        self.assertRaises(ValueError, GPSCoordinate.from_string, '48°24\'3"S')
-        self.assertRaises(ValueError, GPSCoordinate.from_string, 'invalid')
+        self.assertEqual(GPS.from_string('54,59.3800N'), GPS(54, 59, 23, 'N'))
+        self.assertEqual(GPS.from_string('1,54.850000W'), GPS(1, 54, 51, 'W'))
+        self.assertRaises(ValueError, GPS.from_string, '51N')
+        self.assertRaises(ValueError, GPS.from_string, '48 24 3 S')
+        self.assertRaises(ValueError, GPS.from_string, '48°24\'3"S')
+        self.assertRaises(ValueError, GPS.from_string, 'invalid')
 
     def test_to_string(self):
-        self.assertEqual(str(GPSCoordinate(54, 59, 23, 'N')), '54,59,23N')
+        self.assertEqual(str(GPS(54, 59, 23, 'N')), '54,59,23N')

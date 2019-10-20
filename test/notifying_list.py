@@ -31,7 +31,6 @@ import random
 
 
 class SimpleListener(ListenerInterface):
-
     def __init__(self):
         self.changes = 0
 
@@ -40,7 +39,6 @@ class SimpleListener(ListenerInterface):
 
 
 class TestNotifyingList(unittest.TestCase):
-
     def setUp(self):
         self.values = NotifyingList([5, 7, 9, 14, 57, 3, 2])
 
@@ -210,10 +208,13 @@ class TestNotifyingList(unittest.TestCase):
         listeners = self._register_listeners()
 
         self.values *= 3
-        self.assertEqual(self.values,
-                             [5, 7, 9, 14, 57, 3, 2,
-                              5, 7, 9, 14, 57, 3, 2,
-                              5, 7, 9, 14, 57, 3, 2])
+        self.assertEqual(
+            self.values, [
+                5, 7, 9, 14, 57, 3, 2,
+                5, 7, 9, 14, 57, 3, 2,
+                5, 7, 9, 14, 57, 3, 2
+            ]
+        )  # yapf: disable
         for listener in listeners:
             self.assertEqual(listener.changes, 1)
 

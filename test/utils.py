@@ -27,13 +27,13 @@
 
 import unittest
 
-from pyexiv2.utils import (undefined_to_string, string_to_undefined,
-                           Fraction, is_fraction, make_fraction,
-                           fraction_to_string)
+from pyexiv2.utils import (
+    undefined_to_string, string_to_undefined, Fraction, is_fraction,
+    make_fraction, fraction_to_string
+)
 
 
 class TestConversions(unittest.TestCase):
-
     def test_undefined_to_string(self):
         self.assertEqual(undefined_to_string("48 50 50 49"), "0221")
         self.assertEqual(undefined_to_string("48 50 50 49 "), "0221")
@@ -47,13 +47,16 @@ class TestConversions(unittest.TestCase):
 
     def test_identity(self):
         value = "0221"
-        self.assertEqual(undefined_to_string(string_to_undefined(value)), value)
+        self.assertEqual(
+            undefined_to_string(string_to_undefined(value)), value
+        )
         value = "48 50 50 49"
-        self.assertEqual(string_to_undefined(undefined_to_string(value)), value)
+        self.assertEqual(
+            string_to_undefined(undefined_to_string(value)), value
+        )
 
 
 class TestFractions(unittest.TestCase):
-
     def test_is_fraction(self):
         self.assertTrue(is_fraction(Fraction()))
         self.assertTrue(is_fraction(Fraction(3, 5)))

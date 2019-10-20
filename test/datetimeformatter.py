@@ -27,164 +27,143 @@
 
 import unittest
 
-from pyexiv2.utils import DateTimeFormatter, FixedOffset
+from pyexiv2.utils import DateTimeFormatter as DTF
 
-import datetime
+from .testutils import D, T, DT, TD
 
 
 class TestDateTimeFormatter(unittest.TestCase):
-
     def test_timedelta_to_offset(self):
-        # positive deltas
-        t = datetime.timedelta(hours=5)
-        self.assertEqual(DateTimeFormatter.timedelta_to_offset(t), '+05:00')
-        t = datetime.timedelta(minutes=300)
-        self.assertEqual(DateTimeFormatter.timedelta_to_offset(t), '+05:00')
-        t = datetime.timedelta(hours=5, minutes=12)
-        self.assertEqual(DateTimeFormatter.timedelta_to_offset(t), '+05:12')
-        t = datetime.timedelta(seconds=10800)
-        self.assertEqual(DateTimeFormatter.timedelta_to_offset(t), '+03:00')
-
-        # negative deltas
-        t = datetime.timedelta(hours=-4)
-        self.assertEqual(DateTimeFormatter.timedelta_to_offset(t), '-04:00')
-        t = datetime.timedelta(minutes=-258)
-        self.assertEqual(DateTimeFormatter.timedelta_to_offset(t), '-04:18')
-        t = datetime.timedelta(hours=-2, minutes=-12)
-        self.assertEqual(DateTimeFormatter.timedelta_to_offset(t), '-02:12')
-        t = datetime.timedelta(seconds=-10000)
-        self.assertEqual(DateTimeFormatter.timedelta_to_offset(t), '-02:46')
+        cases = [
+            ('+05:00', { 'hours': 5 }),
+            ('+05:00', { 'minutes': 300 }),
+            ('+05:12', { 'hours': 5, 'minutes': 12 }),
+            ('+03:00', { 'seconds': 10800 }),
+            ('-04:00', { 'hours': -4 }),
+            ('-04:18', { 'minutes': -258 }),
+            ('-02:12', { 'hours': -2, 'minutes': -12 }),
+            ('-02:46', { 'seconds': -10000 }),
+        ]  # yapf: disable
+        for s, kwargs in cases:
+            self.assertEqual(DTF.timedelta_to_offset(TD(**kwargs)), s)
 
     def test_exif(self):
-        # datetime
-        d = datetime.datetime(1899, 12, 31)
-        self.assertEqual(DateTimeFormatter.exif(d), '1899:12:31 00:00:00')
-        d = datetime.datetime(1899, 12, 31, 23)
-        self.assertEqual(DateTimeFormatter.exif(d), '1899:12:31 23:00:00')
-        d = datetime.datetime(1899, 12, 31, 23, 59)
-        self.assertEqual(DateTimeFormatter.exif(d), '1899:12:31 23:59:00')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59)
-        self.assertEqual(DateTimeFormatter.exif(d), '1899:12:31 23:59:59')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59, 999999)
-        self.assertEqual(DateTimeFormatter.exif(d), '1899:12:31 23:59:59')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59, tzinfo=FixedOffset())
-        self.assertEqual(DateTimeFormatter.exif(d), '1899:12:31 23:59:59')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59, tzinfo=FixedOffset(hours=5))
-        self.assertEqual(DateTimeFormatter.exif(d), '1899:12:31 23:59:59')
-        d = datetime.datetime(2011, 8, 8, 19, 3, 37)
-        self.assertEqual(DateTimeFormatter.exif(d), '2011:08:08 19:03:37')
+        valid_cases = [
+            # datetime
+            ('1899:12:31 00:00:00', DT(1899, 12, 31)),
+            ('1899:12:31 23:00:00', DT(1899, 12, 31, 23)),
+            ('1899:12:31 23:59:00', DT(1899, 12, 31, 23, 59)),
+            ('1899:12:31 23:59:59', DT(1899, 12, 31, 23, 59, 59)),
+            ('1899:12:31 23:59:59', DT(1899, 12, 31, 23, 59, 59, 999999)),
+            ('1899:12:31 23:59:59', DT(1899, 12, 31, 23, 59, 59, tz=None)),
+            ('1899:12:31 23:59:59', DT(1899, 12, 31, 23, 59, 59, tz=('+', 5))),
+            ('2011:08:08 19:03:37', DT(2011, 8, 8, 19, 3, 37)),
+            # date
+            ('1899:12:31', D(1899, 12, 31)),
+            ('2011:08:08', D(2011, 8, 8)),
+        ]
+        for s, d in valid_cases:
+            self.assertEqual(DTF.exif(d), s)
 
-        # date
-        d = datetime.date(1899, 12, 31)
-        self.assertEqual(DateTimeFormatter.exif(d), '1899:12:31')
-        d = datetime.date(2011, 8, 8)
-        self.assertEqual(DateTimeFormatter.exif(d), '2011:08:08')
-
-        # invalid type
-        self.assertRaises(TypeError, DateTimeFormatter.exif, None)
-        self.assertRaises(TypeError, DateTimeFormatter.exif, 3.14)
+        invalid_cases = [
+            None,
+            3.14,
+        ]
+        for d in invalid_cases:
+            self.assertRaises(TypeError, DTF.exif, d)
 
     def test_iptc_date(self):
-        # datetime
-        d = datetime.datetime(1899, 12, 31)
-        self.assertEqual(DateTimeFormatter.iptc_date(d), '1899-12-31')
-        d = datetime.datetime(1899, 12, 31, 23)
-        self.assertEqual(DateTimeFormatter.iptc_date(d), '1899-12-31')
-        d = datetime.datetime(1899, 12, 31, 23, 59)
-        self.assertEqual(DateTimeFormatter.iptc_date(d), '1899-12-31')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59)
-        self.assertEqual(DateTimeFormatter.iptc_date(d), '1899-12-31')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59, 999999)
-        self.assertEqual(DateTimeFormatter.iptc_date(d), '1899-12-31')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59, tzinfo=FixedOffset())
-        self.assertEqual(DateTimeFormatter.iptc_date(d), '1899-12-31')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59, tzinfo=FixedOffset(hours=5))
-        self.assertEqual(DateTimeFormatter.iptc_date(d), '1899-12-31')
-        d = datetime.datetime(2011, 8, 8, 19, 3, 37)
-        self.assertEqual(DateTimeFormatter.iptc_date(d), '2011-08-08')
+        valid_cases = [
+            # datetime
+            ('1899-12-31', DT(1899, 12, 31)),
+            ('1899-12-31', DT(1899, 12, 31, 23)),
+            ('1899-12-31', DT(1899, 12, 31, 23, 59)),
+            ('1899-12-31', DT(1899, 12, 31, 23, 59, 59)),
+            ('1899-12-31', DT(1899, 12, 31, 23, 59, 59, 999999)),
+            ('1899-12-31', DT(1899, 12, 31, 23, 59, 59, tz=None)),
+            ('1899-12-31', DT(1899, 12, 31, 23, 59, 59, tz=('+', 5))),
+            # date
+            ('1899-12-31', D(1899, 12, 31)),
+            ('2011-08-08', D(2011, 8, 8)),
+        ]
+        for s, d in valid_cases:
+            self.assertEqual(DTF.iptc_date(d), s)
 
-        # date
-        d = datetime.date(1899, 12, 31)
-        self.assertEqual(DateTimeFormatter.iptc_date(d), '1899-12-31')
-        d = datetime.date(2011, 8, 8)
-        self.assertEqual(DateTimeFormatter.iptc_date(d), '2011-08-08')
-
-        # invalid type
-        self.assertRaises(TypeError, DateTimeFormatter.iptc_date, None)
-        self.assertRaises(TypeError, DateTimeFormatter.iptc_date, 3.14)
+        invalid_cases = [
+            None,
+            3.14,
+        ]
+        for d in invalid_cases:
+            self.assertRaises(TypeError, DTF.iptc_date, d)
 
     def test_iptc_time(self):
-        # datetime
-        d = datetime.datetime(1899, 12, 31)
-        self.assertEqual(DateTimeFormatter.iptc_time(d), '00:00:00+00:00')
-        d = datetime.datetime(1899, 12, 31, 23)
-        self.assertEqual(DateTimeFormatter.iptc_time(d), '23:00:00+00:00')
-        d = datetime.datetime(1899, 12, 31, 23, 59)
-        self.assertEqual(DateTimeFormatter.iptc_time(d), '23:59:00+00:00')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59)
-        self.assertEqual(DateTimeFormatter.iptc_time(d), '23:59:59+00:00')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59, 999999)
-        self.assertEqual(DateTimeFormatter.iptc_time(d), '23:59:59+00:00')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59, tzinfo=FixedOffset())
-        self.assertEqual(DateTimeFormatter.iptc_time(d), '23:59:59+00:00')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59, tzinfo=FixedOffset(hours=5))
-        self.assertEqual(DateTimeFormatter.iptc_time(d), '23:59:59+05:00')
-        d = datetime.datetime(2011, 8, 8, 19, 3, 37)
-        self.assertEqual(DateTimeFormatter.iptc_time(d), '19:03:37+00:00')
+        valid_cases = [
+            # datetime
+            ('00:00:00+00:00', DT(1899, 12, 31)),
+            ('23:00:00+00:00', DT(1899, 12, 31, 23)),
+            ('23:59:00+00:00', DT(1899, 12, 31, 23, 59)),
+            ('23:59:59+00:00', DT(1899, 12, 31, 23, 59, 59)),
+            ('23:59:59+00:00', DT(1899, 12, 31, 23, 59, 59, 999999)),
+            ('23:59:59+00:00', DT(1899, 12, 31, 23, 59, 59, tz=None)),
+            ('23:59:59+05:00', DT(1899, 12, 31, 23, 59, 59, tz=('+', 5))),
+            ('19:03:37+00:00', DT(2011, 8, 8, 19, 3, 37)),
+            # time
+            ('23:00:00+00:00', T(23)),
+            ('23:59:00+00:00', T(23, 59)),
+            ('23:59:59+00:00', T(23, 59, 59)),
+            ('23:59:59+00:00', T(23, 59, 59, 999999)),
+            ('23:59:59+00:00', T(23, 59, 59, tz=None)),
+            ('23:59:59+05:00', T(23, 59, 59, tz=('+', 5))),
+            ('19:03:37+00:00', T(19, 3, 37)),
+        ]
+        for s, d in valid_cases:
+            self.assertEqual(DTF.iptc_time(d), s)
 
-        # time
-        d = datetime.time(23)
-        self.assertEqual(DateTimeFormatter.iptc_time(d), '23:00:00+00:00')
-        d = datetime.time(23, 59)
-        self.assertEqual(DateTimeFormatter.iptc_time(d), '23:59:00+00:00')
-        d = datetime.time(23, 59, 59)
-        self.assertEqual(DateTimeFormatter.iptc_time(d), '23:59:59+00:00')
-        d = datetime.time(23, 59, 59, 999999)
-        self.assertEqual(DateTimeFormatter.iptc_time(d), '23:59:59+00:00')
-        d = datetime.time(23, 59, 59, tzinfo=FixedOffset())
-        self.assertEqual(DateTimeFormatter.iptc_time(d), '23:59:59+00:00')
-        d = datetime.time(23, 59, 59, tzinfo=FixedOffset(hours=5))
-        self.assertEqual(DateTimeFormatter.iptc_time(d), '23:59:59+05:00')
-        d = datetime.time(19, 3, 37)
-        self.assertEqual(DateTimeFormatter.iptc_time(d), '19:03:37+00:00')
-
-        # invalid type
-        self.assertRaises(TypeError, DateTimeFormatter.iptc_time, None)
-        self.assertRaises(TypeError, DateTimeFormatter.iptc_time, 3.14)
+        invalid_cases = [
+            None,
+            3.14,
+        ]
+        for d in invalid_cases:
+            self.assertRaises(TypeError, DTF.iptc_time, d)
 
     def test_xmp(self):
-        # datetime
-        d = datetime.datetime(1899, 12, 31)
-        self.assertEqual(DateTimeFormatter.xmp(d), '1899-12-31')
-        d = datetime.datetime(1899, 12, 31, tzinfo=FixedOffset())
-        self.assertEqual(DateTimeFormatter.xmp(d), '1899-12-31')
-        d = datetime.datetime(1899, 12, 31, 23, 59)
-        self.assertEqual(DateTimeFormatter.xmp(d), '1899-12-31T23:59Z')
-        d = datetime.datetime(1899, 12, 31, 23, 59, tzinfo=FixedOffset())
-        self.assertEqual(DateTimeFormatter.xmp(d), '1899-12-31T23:59Z')
-        d = datetime.datetime(1899, 12, 31, 23, 59, tzinfo=FixedOffset(hours=3))
-        self.assertEqual(DateTimeFormatter.xmp(d), '1899-12-31T23:59+03:00')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59)
-        self.assertEqual(DateTimeFormatter.xmp(d), '1899-12-31T23:59:59Z')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59, tzinfo=FixedOffset())
-        self.assertEqual(DateTimeFormatter.xmp(d), '1899-12-31T23:59:59Z')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59, tzinfo=FixedOffset(hours=3))
-        self.assertEqual(DateTimeFormatter.xmp(d), '1899-12-31T23:59:59+03:00')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59, 999999)
-        self.assertEqual(DateTimeFormatter.xmp(d), '1899-12-31T23:59:59.999999Z')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59, 999999, tzinfo=FixedOffset())
-        self.assertEqual(DateTimeFormatter.xmp(d), '1899-12-31T23:59:59.999999Z')
-        d = datetime.datetime(1899, 12, 31, 23, 59, 59, 999999, tzinfo=FixedOffset(hours=3))
-        self.assertEqual(DateTimeFormatter.xmp(d), '1899-12-31T23:59:59.999999+03:00')
-        d = datetime.datetime(2011, 8, 11, 9, 23, 44)
-        self.assertEqual(DateTimeFormatter.xmp(d), '2011-08-11T09:23:44Z')
+        valid_cases = [
+            # datetime
+            ('1899-12-31', DT(1899, 12, 31)),
+            ('1899-12-31', DT(1899, 12, 31, tz=None)),
+            ('1899-12-31T23:59Z', DT(1899, 12, 31, 23, 59)),
+            ('1899-12-31T23:59Z', DT(1899, 12, 31, 23, 59, tz=None)),
+            ('1899-12-31T23:59+03:00', DT(1899, 12, 31, 23, 59, tz=('+', 3))),
+            ('1899-12-31T23:59:59Z', DT(1899, 12, 31, 23, 59, 59)),
+            ('1899-12-31T23:59:59Z', DT(1899, 12, 31, 23, 59, 59, tz=None)),
+            (
+                '1899-12-31T23:59:59+03:00',
+                DT(1899, 12, 31, 23, 59, 59, tz=('+', 3))
+            ),
+            (
+                '1899-12-31T23:59:59.999999Z',
+                DT(1899, 12, 31, 23, 59, 59, 999999)
+            ),
+            (
+                '1899-12-31T23:59:59.999999Z',
+                DT(1899, 12, 31, 23, 59, 59, 999999, tz=None)
+            ),
+            (
+                '1899-12-31T23:59:59.999999+03:00',
+                DT(1899, 12, 31, 23, 59, 59, 999999, tz=('+', 3))
+            ),
+            ('2011-08-11T09:23:44Z', DT(2011, 8, 11, 9, 23, 44)),
 
-        # date
-        d = datetime.date(1899, 12, 31)
-        self.assertEqual(DateTimeFormatter.xmp(d), '1899-12-31')
-        d = datetime.date(2011, 8, 8)
-        self.assertEqual(DateTimeFormatter.xmp(d), '2011-08-08')
+            # date
+            ('1899-12-31', D(1899, 12, 31)),
+            ('2011-08-08', D(2011, 8, 8)),
+        ]
+        for s, d in valid_cases:
+            self.assertEqual(DTF.xmp(d), s)
 
-        # invalid type
-        self.assertRaises(TypeError, DateTimeFormatter.xmp, None)
-        self.assertRaises(TypeError, DateTimeFormatter.xmp, 3.14)
+        invalid_cases = [
+            None,
+            3.14,
+        ]
+        for d in invalid_cases:
+            self.assertRaises(TypeError, DTF.xmp, d)

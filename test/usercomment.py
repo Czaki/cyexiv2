@@ -25,13 +25,14 @@
 #
 # ******************************************************************************
 
-from pyexiv2.metadata import ImageMetadata
-
-import unittest
 import os
 import tempfile
+import unittest
+
+from pyexiv2.metadata import ImageMetadata
 
 from . import testutils
+
 
 class TestUserCommentReadWrite(unittest.TestCase):
 
@@ -39,11 +40,13 @@ class TestUserCommentReadWrite(unittest.TestCase):
         'usercomment-ascii.jpg': 'ad29ac65fb6f63c8361aaed6cb02f8c7',
         'usercomment-unicode-ii.jpg': '13b7cc09129a8677f2cf18634f5abd3c',
         'usercomment-unicode-mm.jpg': '7addfed7823c556ba489cd4ab2037200',
-        }
+    }
 
     def _read_image(self, filename):
-        filepath = testutils.get_absolute_file_path(os.path.join('data', filename))
-        self.assertTrue(testutils.CheckFileSum(filepath, self.checksums[filename]))
+        filepath = testutils.get_absolute_file_path('data', filename)
+        self.assertEqual(
+            testutils.md5sum_file(filepath), self.checksums[filename]
+        )
         m = ImageMetadata(filepath)
         m.read()
         return m
@@ -71,8 +74,8 @@ class TestUserCommentReadWrite(unittest.TestCase):
         self.assertEqual(tag.raw_value, b'd\xc3\xa9j\xc3\xa0 vu')
         self.assertEqual(tag.value, 'déjà vu')
 
-class TestUserCommentAdd(unittest.TestCase):
 
+class TestUserCommentAdd(unittest.TestCase):
     def setUp(self):
         # Create an empty image file
         fd, self.pathname = tempfile.mkstemp(suffix='.jpg')

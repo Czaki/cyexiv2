@@ -34,7 +34,6 @@ from tempfile import gettempdir
 
 from pyexiv2.metadata import ImageMetadata
 
-
 _HEXDATA = """
 ff d8 ff e0 00 10 4a 46  49 46 00 01 01 01 00 48
 00 48 00 00 ff e1 00 36  45 78 69 66 00 00 49 49
@@ -63,7 +62,6 @@ _BINDATA = binascii.unhexlify(''.join(_HEXDATA.split()))
 
 
 class TestEncodings(unittest.TestCase):
-
     def setUp(self):
         self._cwd = os.getcwd()
         os.chdir(gettempdir())
