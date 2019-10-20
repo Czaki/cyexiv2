@@ -35,35 +35,18 @@ This is a typical list of build dependencies for a Debian/Ubuntu system:
 Building and installing
 =======================
 
-To build and install the library, while in the top-level directory
-(e.g. '~/dev/p3yexiv2', which should contain a file named 'configure.py'),
-run the following commands:
-
- $ python3 configure.py     # To chek your environment and write the Makefile
- $ ./build.sh               # To compile the lib
- $ ./build.sh -i            # as administrator to install all files
-
-You can run configure.py with the following arguments:
-    -h                  show the help message and exit
-    --libboost=FILE     where FILE is the full path of libboost-python3
-                        e.g. `/usr/lib/x86_64-linux-gnu/libboost_python-py34.so`
-
-The result of the build is a dynamic library, libexiv2python.so, in the build/
-directory. This is the low-level binding. It is in turn used in a higher level
-module, pyexiv2.
-The `./build.sh -i` command installs the two modules in your site-specific directory
-for Python modules (e.g. '/usr/lib/python3/dist-packages/' on Linux).
+py3exiv2 can be built and installed using ``setup.py`` as usual.
 
 To use py3exiv2 in your scripts, simply import the pyexiv2 module.
 
-Note: the lib name is py3exiv2 but, for compatibility, the top-level module 
-      is named pyexiv2
+Note: the lib name is py3exiv2 but, for compatibility, the top-level
+module is named pyexiv2.
 
 
 Documentation
 =============
 
-You can find the API documentation at: 
+You can find the API documentation at:
     http://python3-exiv2.readthedocs.org/en/latest
 or refer to the internal documentation for a guide on how to use py3exiv2.
 In a python interpreter, type:
