@@ -1325,337 +1325,117 @@ void translateExiv2Error(Exiv2::Error const& error)
     // The type of the Python exception depends on the error code
     // Warning: this piece of code should be updated in case the error codes
     // defined by Exiv2 (file 'src/error.cpp') are changed
-    switch (error.code())
+    switch ((Exiv2::ErrorCode)error.code())
     {
-        case 1:
-            // kerErrorMessage Unidentified error
-            PyErr_SetString(PyExc_RuntimeError, message);
-            break;
-        case 2:
-            // kerCallFailed {path}: Call to `{function}' failed: {strerror}
-            // May be raised when reading a file
-            PyErr_SetString(PyExc_RuntimeError, message);
-            break;
-        case 3:
-            // kerNotAnImage This does not look like a {image type} image
-            // May be raised by readMetadata()
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 4:
-            // kerInvalidDataset Invalid dataset name `{dataset name}'
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 5:
-            // kerInvalidRecord Invalid record name `{record name}'
-            // May be raised when instantiating an IptcKey from a string
-            PyErr_SetString(PyExc_KeyError, message);
-            break;
-        case 6:
-            // kerInvalidKey Invalid key `{key}'
-            // May be raised when instantiating an ExifKey, an IptcKey or an
-            // XmpKey from a string
-            PyErr_SetString(PyExc_KeyError, message);
-            break;
-        case 7:
-            // kerInvalidTag
-            // Invalid tag name or ifdId `{tag name}', ifdId {ifdId}
-            // May be raised when instantiating an ExifKey from a string
-            PyErr_SetString(PyExc_KeyError, message);
-            break;
-        case 8:
-            // kerValueNotSet Value not set
-            // May be raised when calling value() on a datum
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 9:
-            // kerDataSourceOpenFailed
-            // {path}: Failed to open the data source: {strerror}
-            // May be raised by readMetadata()
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 10:
-            // kerFileOpenFailed
-            // {path}: Failed to open file ({mode}): {strerror}
-            // May be raised by writeMetadata()
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 11:
-            // kerFileOpenFailed
-            // {path}: The file contains data of an unknown image type
-            // May be raised when opening an image
-            PyErr_SetString(PyExc_TypeError, message);
-            break;
-        case 12:
-            // kerMemoryContainsUnknownImageType
-            //The memory contains data of an unknown image type
-            // May be raised when instantiating an image from a data buffer
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 13:
-            // kerUnsupportedImageType Image type {image type} is not supported
-            // May be raised when creating a new image
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 14:
-            // kerFailedToReadImageData Failed to read image data
-            // May be raised by readMetadata()
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 15:
-            // kerNotAJpeg This does not look like a JPEG image
-            // May be raised by readMetadata()
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 17:
-            // kerFileRenameFailed
-            // {old path}: Failed to rename file to {new path}: {strerror}
-            // May be raised by writeMetadata()
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 18:
-            // kerTransferFailed {path}: Transfer failed: {strerror}
-            // May be raised by writeMetadata()
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 19:
-            // kerMemoryTransferFailed Memory transfer failed: {strerror}
-            // May be raised by writeMetadata()
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 20:
-            // kerInputDataReadFailed Failed to read input data
-            // May be raised by writeMetadata()
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 21:
-            // kerImageWriteFailed Failed to write image
-            // May be raised by writeMetadata()
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 22:
-            // kerNoImageInInputData Input data does not contain a valid image
-            // May be raised by writeMetadata()
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 23:
-            // kerInvalidIfdId Invalid ifdId {ifdId}
-            // May be raised when instantiating an ExifKey from a tag and
-            // IFD item string
-            PyErr_SetString(PyExc_KeyError, message);
-            break;
-        case 24:
-            // kerValueTooLarge
-            // Entry::setValue: Value too large {tag}, {size}, {requested}
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 25:
-            // kerDataAreaValueTooLarge
-            // Entry::setDataArea: Value too large {tag}, {size}, {requested}
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 26:
-            // kerOffsetOutOfRange Offset out of range
-            // May be raised by writeMetadata() (TIFF)
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 27:
-            // kerUnsupportedDataAreaOffsetType
-            // Unsupported data area offset type
-            // May be raised by writeMetadata() (TIFF)
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 28:
-            // kerInvalidCharset Invalid charset: `{charset name}'
-            // May be raised when instantiating a CommentValue from a string
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 29:
-            // kerUnsupportedDateFormat Unsupported date format
-            // May be raised when instantiating a DateValue from a string
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 30:
-            // kerUnsupportedTimeFormat Unsupported time format
-            // May be raised when instantiating a TimeValue from a string
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 31:
-            // kerWritingImageFormatUnsupported
-            // Writing to {image format} images is not supported
-            // May be raised by writeMetadata() for certain image types
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 32:
-            // kerInvalidSettingForImage
-            // Setting {metadata type} in {image format} images is not supported
-            // May be raised when setting certain types of metadata for certain
-            // image types that don't support them
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 33:
-            // kerNotACrwImage This does not look like a CRW image
-            // May be raised by readMetadata() (CRW)
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 34:
-            // kerFunctionNotSupported {function}: Not supported
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 35:
-            // kerNoNamespaceInfoForXmpPrefix
-            // No namespace info available for XMP prefix `{prefix}'
-            // May be raised when retrieving property info for an XmpKey
-            PyErr_SetString(PyExc_KeyError, message);
-            break;
-        case 36:
-            // kerNoPrefixForNamespace
-            // No prefix registered for namespace `{namespace}', needed for
-            // property path `{property path}'
-            // May be raised by readMetadata() when reading the XMP data
-            PyErr_SetString(PyExc_KeyError, message);
-            break;
-        case 37:
-            // kerTooLargeJpegSegment
-            // Size of {type of metadata} JPEG segment is larger than
-            // 65535 bytes
-            // May be raised by writeMetadata() (JPEG)
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 38:
-            // kerUnhandledXmpdatum
-            // Unhandled Xmpdatum {key} of type {value type}
-            // May be raised by readMetadata() when reading the XMP data
-            PyErr_SetString(PyExc_TypeError, message);
-            break;
-        case 39:
-            // kerUnhandledXmpNode
-            // Unhandled XMP node {key} with opt={XMP Toolkit option flags}
-            // May be raised by readMetadata() when reading the XMP data
-            PyErr_SetString(PyExc_TypeError, message);
-            break;
-        case 40:
-            // kerXMPToolkitError
-            // XMP Toolkit error {error id}: {error message}
-            // May be raised by readMetadata() when reading the XMP data
-            PyErr_SetString(PyExc_RuntimeError, message);
-            break;
-        case 41:
-            // kerDecodeLangAltPropertyFailed
-            // Failed to decode Lang Alt property {property path}
-            // with opt={XMP Toolkit option flags}
-            // May be raised by readMetadata() when reading the XMP data
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 42:
-            // kerDecodeLangAltQualifierFailed
-            // Failed to decode Lang Alt qualifier {qualifier path}
-            // with opt={XMP Toolkit option flags}
-            // May be raised by readMetadata() when reading the XMP data
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 43:
-            // kerEncodeLangAltPropertyFailed
-            // Failed to encode Lang Alt property {key}
-            // May be raised by writeMetadata()
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 44:
-            // kerPropertyNameIdentificationFailed
-            // Failed to determine property name from path {property path},
-            // namespace {namespace}
-            // May be raised by readMetadata() when reading the XMP data
-            PyErr_SetString(PyExc_KeyError, message);
-            break;
-        case 45:
-            // kerSchemaNamespaceNotRegistered
-            // Schema namespace {namespace} is not registered with
-            // the XMP Toolkit
-            // May be raised by readMetadata() when reading the XMP data
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 46:
-            // kerNoNamespaceForPrefix
-            // No namespace registered for prefix `{prefix}'
-            // May be raised when instantiating an XmpKey from a string
-            PyErr_SetString(PyExc_KeyError, message);
-            break;
-        case 47:
-            // kerAliasesNotSupported
-            // Aliases are not supported. Please send this XMP packet
-            // to ahuggel@gmx.net `{namespace}', `{property path}', `{value}'
-            // May be raised by readMetadata() when reading the XMP data
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 48:
-            // kerInvalidXmpText
-            // Invalid XmpText type `{type}'
-            // May be raised when instantiating an XmpTextValue from a string
-            PyErr_SetString(PyExc_TypeError, message);
-            break;
-        case 49:
-            // kerTooManyTiffDirectoryEntries
-            // TIFF directory {TIFF directory name} has too many entries
-            // May be raised by writeMetadata() (TIFF)
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        // Added in py3exiv2
-        case 50:
-            // kerMultipleTiffArrayElementTagsInDirectory
-            // Multiple TIFF array element tags {number} in one directory")
-            // May be raised by readMetadata() (TIFF)
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 51:
-            // kerWrongTiffArrayElementTagType
-            // TIFF array element tag {number} has wrong type") }, // %1=tag number
-            // May be raised by readMetadata() (TIFF)
-            PyErr_SetString(PyExc_TypeError, message);
-            break;
-        // Added in libexiv2 0.27
-        case 52:
-            // kerInvalidKeyXmpValue {key} has invalid XMP value type {type}
-            // May be raised by readMetadata() when reading the XMP data
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 53:
-            // kerInvalidIccProfile Not a valid ICC Profile
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 54:
-            // kerInvalidXMP Not valid XMP
-            PyErr_SetString(PyExc_TypeError, message);
-            break;
-        case 55:
-            // kerTiffDirectoryTooLarge tiff directory length is too large
-            PyErr_SetString(PyExc_ValueError, message);
-            break;
-        case 56:
-            // kerInvalidTypeValue
-            // Invalid type value detected in Image::printIFDStructure
-            PyErr_SetString(PyExc_TypeError, message);
-            break;
-        case 57:
-            // kerInvalidMalloc
-            // Invalid memory allocation request
-            PyErr_SetString(PyExc_MemoryError, message);
-            break;
-        case 58:
-            // kerCorruptedMetadata Corrupted image metadata
-            PyErr_SetString(PyExc_IOError, message);
-            break;
-        case 59:
-            // kerArithmeticOverflow Arithmetic operation overflow
-            PyErr_SetString(PyExc_OverflowError, message);
-            break;
-        case 60:
-            // kerMallocFailed Memory allocation failed
-            PyErr_SetString(PyExc_MemoryError, message);
-            break;
+        // I/O error while reading or writing an image.  There may be
+        // embedded strerror() text.  Unfortunately the corresponding
+        // errno value is lost, which means we can't use PyErr_SetFromErrno
+        // to get a fine-grained OSError subclass.
+    case Exiv2::kerDataSourceOpenFailed:
+    case Exiv2::kerFileOpenFailed:
+    case Exiv2::kerFailedToReadImageData:
+    case Exiv2::kerFailedToMapFileForReadWrite:
+    case Exiv2::kerFileRenameFailed:
+    case Exiv2::kerTransferFailed:
+    case Exiv2::kerMemoryTransferFailed:
+    case Exiv2::kerInputDataReadFailed:
+    case Exiv2::kerImageWriteFailed:
+    case Exiv2::kerOffsetOutOfRange:
+        PyErr_SetString(PyExc_IOError, message);
+        return;
 
-        // Default handler
-        default:
-            PyErr_SetString(PyExc_RuntimeError, message);
+        // Errors relating to an invalid value for a tag.
+    case Exiv2::kerInvalidDataset:
+    case Exiv2::kerValueNotSet:
+    case Exiv2::kerValueTooLarge:
+    case Exiv2::kerDataAreaValueTooLarge:
+    case Exiv2::kerInvalidCharset:
+    case Exiv2::kerUnsupportedDateFormat:
+    case Exiv2::kerUnsupportedTimeFormat:
+    case Exiv2::kerInvalidSettingForImage:
+    case Exiv2::kerTooLargeJpegSegment:
+    case Exiv2::kerDecodeLangAltPropertyFailed:
+    case Exiv2::kerDecodeLangAltQualifierFailed:
+    case Exiv2::kerEncodeLangAltPropertyFailed:
+    case Exiv2::kerInvalidXmpText:
+    case Exiv2::kerInvalidKeyXmpValue:
+        PyErr_SetString(PyExc_ValueError, message);
+        return;
+
+        // Errors relating to an invalid name or code for a tag.
+    case Exiv2::kerInvalidRecord:
+    case Exiv2::kerInvalidKey:
+    case Exiv2::kerInvalidTag:
+    case Exiv2::kerInvalidIfdId:
+    case Exiv2::kerNoNamespaceInfoForXmpPrefix:
+    case Exiv2::kerNoPrefixForNamespace:
+    case Exiv2::kerPropertyNameIdentificationFailed:
+    case Exiv2::kerSchemaNamespaceNotRegistered:
+    case Exiv2::kerNoNamespaceForPrefix:
+        PyErr_SetString(PyExc_KeyError, message);
+        return;
+
+        // The image is in an unrecognized format.
+        // TypeError doesn't make a whole lot of sense, but none of the
+        // other exception classes make _more_ sense.
+    case Exiv2::kerNotAnImage:
+    case Exiv2::kerFileContainsUnknownImageType:
+    case Exiv2::kerMemoryContainsUnknownImageType:
+    case Exiv2::kerNotAJpeg:
+    case Exiv2::kerNoImageInInputData:
+    case Exiv2::kerNotACrwImage:
+    case Exiv2::kerTooManyTiffDirectoryEntries:
+    case Exiv2::kerMultipleTiffArrayElementTagsInDirectory:
+    case Exiv2::kerWrongTiffArrayElementTagType:
+    case Exiv2::kerInvalidIccProfile:
+    case Exiv2::kerInvalidXMP:
+    case Exiv2::kerTiffDirectoryTooLarge:
+    case Exiv2::kerInvalidTypeValue:
+    case Exiv2::kerCorruptedMetadata:
+        PyErr_SetString(PyExc_TypeError, message);
+        return;
+
+        // Caller asked to use an image format, or a feature of an
+        // image format, that has not yet been implemented by libexiv2.
+    case Exiv2::kerUnsupportedImageType:
+    case Exiv2::kerUnsupportedDataAreaOffsetType:
+    case Exiv2::kerWritingImageFormatUnsupported:
+    case Exiv2::kerFunctionNotSupported:
+    case Exiv2::kerUnhandledXmpdatum:
+    case Exiv2::kerUnhandledXmpNode:
+    case Exiv2::kerAliasesNotSupported:
+        PyErr_SetString(PyExc_NotImplementedError, message);
+        return;
+
+        // Memory allocation failure
+    case Exiv2::kerInvalidMalloc:
+    case Exiv2::kerMallocFailed:
+        PyErr_SetString(PyExc_MemoryError, message);
+        return;
+
+        // Arithmetic overflow
+    case Exiv2::kerArithmeticOverflow:
+        PyErr_SetString(PyExc_OverflowError, message);
+        return;
+
+        // Should be impossible
+    case Exiv2::kerSuccess:
+        PyErr_SetString(PyExc_AssertionError, message);
+        return;
+
+        // We can't be more specific than a RuntimeError.
+    case Exiv2::kerGeneralError:
+    case Exiv2::kerErrorMessage:
+    case Exiv2::kerCallFailed:
+    case Exiv2::kerXMPToolkitError:
+        break;
     }
+
+    // Putting the fallback action below the switch statement, instead
+    // of having a 'default' entry, makes some compilers issue
+    // warnings if we don't mention every single kerXXX code in the
+    // switch statement.
+    PyErr_SetString(PyExc_RuntimeError, message);
 }
 
 
