@@ -260,4 +260,4 @@ class TestIptcTag(unittest.TestCase):
     def test_set_value_non_repeatable(self):
         tag = IptcTag('Iptc.Application2.ReleaseDate')
         value = [D.today(), D.today()]
-        self.assertRaises(KeyError, setattr, tag, 'value', value)
+        self.assertRaises(ValueError, setattr, tag, 'value', value)
