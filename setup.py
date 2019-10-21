@@ -1,5 +1,28 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+# ******************************************************************************
+#
+# Copyright (C) 2006-2012 Olivier Tilloy <olivier@tilloy.net>
+# Copyright (C) 2015-2019 Vincent Vande Vyvre <vincent.vandevyvre@oqapy.eu>
+# Copyright (C) 2019      Zack Weinberg <zackw@panix.com>
+#
+# This file is part of the pyexiv2 distribution.
+#
+# pyexiv2 is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# version 3 as published by the Free Software Foundation.
+#
+# pyexiv2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with pyexiv2.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Maintainer: Vincent Vande Vyvre <vincent.vandevyvre@oqapy.eu>
+#
+# ******************************************************************************
 
 # Replacement setup.py for py3exiv2, that allows building on OSX
 # https://gist.github.com/ndevenish/6410cab393bd8dec1b016061ddb5573b

@@ -2,8 +2,9 @@
 
 # ******************************************************************************
 #
-# Copyright (C) 2010 Olivier Tilloy <olivier@tilloy.net>
-# Copyright (C) 2015-2016 Vincent Vande Vyvre <vincent.vandevyvre@oqapy.eu>
+# Copyright (C) 2006-2012 Olivier Tilloy <olivier@tilloy.net>
+# Copyright (C) 2015-2019 Vincent Vande Vyvre <vincent.vandevyvre@oqapy.eu>
+# Copyright (C) 2019      Zack Weinberg <zackw@panix.com>
 #
 # This file is part of the pyexiv2 distribution.
 #
@@ -18,8 +19,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with pyexiv2; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, 5th Floor, Boston, MA 02110-1301 USA.
+# along with pyexiv2.  If not, see <https://www.gnu.org/licenses/>.
 #
 # Maintainer: Vincent Vande Vyvre <vincent.vandevyvre@oqapy.eu>
 #
