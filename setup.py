@@ -91,9 +91,6 @@ setup(
     keywords='exiv2 pyexiv2 EXIF IPTC XMP image metadata',
     packages=find_packages('src'),
     package_dir={'': 'src'},
-    package_data={'': [
-        'src/*.cpp',
-    ]},
     ext_modules=[
         Extension(
             'pyexiv2._libexiv2',
