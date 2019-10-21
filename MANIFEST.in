@@ -11,4 +11,5 @@ include test/*.py
 include test/data/*.jpg
 include test/data/*.JPG
 include test/data/MD5SUMS
+include tox.ini
 prune doc/_build

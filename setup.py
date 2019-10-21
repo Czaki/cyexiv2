@@ -74,6 +74,18 @@ setup(
     author_email='vincent.vandevyvre@oqapy.eu',
     license='GPL-3',
 
+    python_requires='>= 3.3',
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
+    ext_modules=[
+        Extension(
+            'pyexiv2._libexiv2',
+            ['src/pyexiv2/_libexiv2.cpp'],
+            libraries=[boostlib, 'exiv2'],
+            extra_compile_args=['-g']
+        )
+    ],
+
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -89,14 +101,4 @@ setup(
         'Programming Language :: Python :: 3.8',
     ],
     keywords='exiv2 pyexiv2 EXIF IPTC XMP image metadata',
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
-    ext_modules=[
-        Extension(
-            'pyexiv2._libexiv2',
-            ['src/pyexiv2/_libexiv2.cpp'],
-            libraries=[boostlib, 'exiv2'],
-            extra_compile_args=['-g']
-        )
-    ],
 )

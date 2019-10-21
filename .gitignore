@@ -11,6 +11,7 @@ __pycache__/
 pip-delete-this-directory.txt
 pip-log.txt
 /MANIFEST
+/.tox/
 /build/
 /develop-eggs/
 /dist/
