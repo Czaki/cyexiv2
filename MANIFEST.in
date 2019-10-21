@@ -1,0 +1,14 @@
+include CHANGELOG
+include COPYING
+include DESCRIPTION.rst
+include doc/*.rst
+include doc/*.py
+include doc/*.jpg
+include doc/*.JPG
+include doc/Makefile
+include doc/make.bat
+include test/*.py
+include test/data/*.jpg
+include test/data/*.JPG
+include test/data/MD5SUMS
+prune doc/_build
