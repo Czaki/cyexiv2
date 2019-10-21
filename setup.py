@@ -7,7 +7,6 @@
 import sys
 import os
 import glob
-import subprocess
 import platform
 
 from setuptools import setup, find_packages, Extension
@@ -28,7 +27,7 @@ def get_libboost_osx():
         lib = place + "libboost_python3*.dylib"
         files = glob.glob(lib)
         for f in files:
-            if not "-mt" in f:
+            if "-mt" not in f:
                 return os.path.basename(f).replace("lib", "").split(".")[0]
 
         print("NOT FOUND", files)
@@ -73,7 +72,6 @@ setup(
         'src/*.cpp',
         'src/*.hpp',
     ]},
-    #cmdclass={'install': install},
     ext_modules=[
         Extension(
             'libexiv2python',

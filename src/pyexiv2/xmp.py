@@ -81,13 +81,30 @@ class XmpTag(object):
     - XPath: *[not implemented yet]*
     """
 
-    # strptime is not flexible enough to handle all valid Date formats, we use a
-    # custom regular expression
-    _time_zone_re = r'Z|((?P<sign>\+|-)(?P<ohours>\d{2}):(?P<ominutes>\d{2}))'
-    _time_re = r'(?P<hours>\d{2})(:(?P<minutes>\d{2})(:(?P<seconds>\d{2})(.(?P<decimal>\d+))?)?(?P<tzd>%s))?' % _time_zone_re
+    # strptime is not flexible enough to handle all valid Date
+    # formats, we use a custom regular expression
     _date_re = re.compile(
-        r'(?P<year>\d{4})(-(?P<month>\d{2})(-(?P<day>\d{2})(T(?P<time>%s))?)?)?'
-        % _time_re
+        r'''\A
+                  (?P<year>    \d{4} )
+            (?: - (?P<month>   \d{2} )
+                (?: - (?P<day> \d{2} )
+                    (?: T (?P<time>
+                                (?P<hours>   \d{2} )
+                             :  (?P<minutes> \d{2} )
+                         (?: :  (?P<seconds> \d{2} )
+                             (?: \. (?P<decimal> \d+ ) )?
+                         )?
+                         (?P<tzd>
+                             Z
+                           |   (?P<sign>      \+|- )
+                               (?P<ohours>   \d{2} )
+                             : (?P<ominutes> \d{2} )
+                          )?
+                        )
+                    )?
+                )?
+            )?
+        \Z''', re.X
     )
 
     def __init__(self, key, value=None, _tag=None):
@@ -109,7 +126,6 @@ class XmpTag(object):
         self._value = None
         self._value_cookie = False
         if value is not None:
-            #type_ = self._tag._getType()
             self._set_value(value)
 
     def _set_owner(self, metadata):
@@ -195,9 +211,11 @@ class XmpTag(object):
         self._raw_value = value
         self._value_cookie = True
 
-    raw_value = property(fget=_get_raw_value, fset=_set_raw_value,
-                         doc='The raw value of the tag as a [list of] ' \
-                             'string(s).')
+    raw_value = property(
+        fget=_get_raw_value,
+        fset=_set_raw_value,
+        doc='The raw value of the tag as a [list of] string(s).'
+    )
 
     def _compute_value(self):
         # Lazy computation of the value from the raw value
@@ -277,9 +295,11 @@ class XmpTag(object):
         self._value = value
         self._value_cookie = False
 
-    value = property(fget=_get_value, fset=_set_value,
-                     doc='The value of the tag as a [list of] python ' \
-                         'object(s).')
+    value = property(
+        fget=_get_value,
+        fset=_set_value,
+        doc='The value of the tag as a [list of] python object(s).'
+    )
 
     def _convert_to_python(self, value, type_):
         """Convert a raw value to its corresponding python type.
@@ -411,7 +431,7 @@ class XmpTag(object):
                 try:
                     return value.decode('utf-8')
                 except UnicodeEncodeError:
-                    raise XMPValueError(value, type_)
+                    raise XmpValueError(value, type_)
 
             elif isinstance(value, str):
                 return value

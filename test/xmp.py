@@ -344,10 +344,10 @@ class TestXmpTag(unittest.TestCase):
             'Text',
             valid=[
                 ('Some text.', 'Some text.'),
-                (
-                    b'Some text with exotic ch\xc3\xa0r\xc3\xa4ct\xc3\xa9r\xca\x90.',
-                    'Some text with exotic chàräctérʐ.'
-                ),
+                ((
+                    b'Some text with exotic '
+                    b'ch\xc3\xa0r\xc3\xa4ct\xc3\xa9r\xca\x90.'
+                ), 'Some text with exotic chàräctérʐ.'),
             ],
             invalid=[
                 None,
@@ -358,12 +358,15 @@ class TestXmpTag(unittest.TestCase):
         self.do_test_convert_to_string(
             'Xmp.dc.source',
             'Text',
-            valid=
-            [('Some text', b'Some text'),
-             (
-                 'Some text with exotic chàräctérʐ.',
-                 b'Some text with exotic ch\xc3\xa0r\xc3\xa4ct\xc3\xa9r\xca\x90.'
-             )],
+            valid=[
+                ('Some text', b'Some text'),
+                (
+                    'Some text with exotic chàräctérʐ.', (
+                        b'Some text with exotic '
+                        b'ch\xc3\xa0r\xc3\xa4ct\xc3\xa9r\xca\x90.'
+                    )
+                ),
+            ],
             invalid=[
                 None,
             ]
@@ -593,8 +596,8 @@ class TestXmpNamespaces(unittest.TestCase):
         self.assertRaises(KeyError, self.metadata.write)
 
     def test_unregister_all_ns(self):
-        # Unregistering all custom namespaces will always succeed, even if there
-        # are no custom namespaces registered.
+        # Unregistering all custom namespaces will always succeed,
+        # even if there are no custom namespaces registered.
         unregister_namespaces()
 
         name = 'blop/'

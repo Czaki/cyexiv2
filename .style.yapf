@@ -224,7 +224,7 @@ split_arguments_when_comma_terminated=False
 
 # Set to True to prefer splitting before '+', '-', '*', '/', '//', or '@'
 # rather than after.
-split_before_arithmetic_operator=False
+split_before_arithmetic_operator=True
 
 # Set to True to prefer splitting before '&', '|' or '^' rather than
 # after.

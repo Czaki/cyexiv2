@@ -197,6 +197,5 @@ class ReadMetadataTestCase(unittest.TestCase):
             ('Xmp.xmpRights.Marked', bool, True),
             ('Xmp.xmpRights.WebStatement', str, 'www.freefoto.com'),
         ]
-        #self.assertEqual(image.xmp_keys, [tag[0] for tag in xmpTags])
         for key, ktype, value in xmpTags:
             self.check_type_and_value(image[key], ktype, value)

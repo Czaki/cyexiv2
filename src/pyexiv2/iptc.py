@@ -30,13 +30,13 @@ IPTC specific code.
 
 import libexiv2python
 
-from pyexiv2.utils import ListenerInterface, NotifyingList, \
-                          FixedOffset, DateTimeFormatter
+from pyexiv2.utils import (
+    DateTimeFormatter, FixedOffset, ListenerInterface, NotifyingList
+)
 
 import time
 import datetime
 import re
-import warnings
 
 
 class IptcValueError(ValueError):
@@ -60,23 +60,25 @@ class IptcValueError(ValueError):
 class IptcTag(ListenerInterface):
     """An IPTC tag.
 
-    This tag can have several values (tags that have the *repeatable* property).
+    This tag can have several values (tags that have the *repeatable*
+    property).
 
-    Here is a correspondance table between the IPTC types and the possible
-    python types the value of a tag may take:
+    Here is a correspondance table between the IPTC types and the
+    possible python types the value of a tag may take:
 
     - Short: int
     - String: string
     - Date: :class:`datetime.date`
     - Time: :class:`datetime.time`
     - Undefined: string
+
     """
-    # strptime is not flexible enough to handle all valid Time formats, we use a
-    # custom regular expression
+    # strptime is not flexible enough to handle all valid Time
+    # formats, we use a custom regular expression
     _time_zone_re = r'(?P<sign>\+|-)(?P<ohours>\d{2}):(?P<ominutes>\d{2})'
     _time_re = re.compile(
-        r'(?P<hours>\d{2}):(?P<minutes>\d{2}):(?P<seconds>\d{2})(?P<tzd>%s)' %
-        _time_zone_re
+        r'(?P<hours>\d{2}):(?P<minutes>\d{2}):(?P<seconds>\d{2})(?P<tzd>%s)'
+        % _time_zone_re
     )
 
     def __init__(self, key, values=None, _tag=None):
@@ -272,10 +274,10 @@ class IptcTag(ListenerInterface):
             return value
 
         elif self.type == 'Date':
-            # According to the IPTC specification, the format for a string field
-            # representing a date is '%Y%m%d'. However, the string returned by
-            # exiv2 using method DateValue::toString() is formatted using
-            # pattern '%Y-%m-%d'.
+            # According to the IPTC specification, the format for a string
+            # field representing a date is '%Y%m%d'.  However, the string
+            # returned by exiv2 using method DateValue::toString() is
+            # formatted using pattern '%Y-%m-%d'.
             format = '%Y-%m-%d'
             try:
                 t = time.strptime(value, format)
@@ -284,10 +286,10 @@ class IptcTag(ListenerInterface):
                 raise IptcValueError(value, self.type)
 
         elif self.type == 'Time':
-            # According to the IPTC specification, the format for a string field
-            # representing a time is '%H%M%S±%H%M'. However, the string returned
-            # by exiv2 using method TimeValue::toString() is formatted using
-            # pattern '%H:%M:%S±%H:%M'.
+            # According to the IPTC specification, the format for a string
+            # field representing a time is '%H%M%S±%H%M'. However, the string
+            # returned by exiv2 using method TimeValue::toString() is
+            # formatted using pattern '%H:%M:%S±%H:%M'.
             match = IptcTag._time_re.match(value)
             if match is None:
                 raise IptcValueError(value, self.type)

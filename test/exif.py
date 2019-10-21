@@ -463,8 +463,9 @@ class TestExifTag(unittest.TestCase):
 
     def test_makernote_types(self):
         # Makernote tags not attached to an image have an Undefined type by
-        # default. When read from an existing image though, their type should be
-        # correctly set (see https://bugs.launchpad.net/pyexiv2/+bug/781464).
+        # default. When read from an existing image though, their type should
+        # be correctly set.
+        # See <https://bugs.launchpad.net/pyexiv2/+bug/781464>.
         tag1 = ExifTag('Exif.Pentax.PreviewResolution')
         tag1.raw_value = '640 480'
         self.assertEqual(tag1.type, 'Undefined')

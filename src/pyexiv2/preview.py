@@ -28,8 +28,6 @@
 Provide the Preview class.
 """
 
-import sys
-
 
 class Preview(object):
     """A preview image (properties and data buffer) embedded in image metadata.

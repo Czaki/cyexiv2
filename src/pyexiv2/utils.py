@@ -108,6 +108,21 @@ class FixedOffset(datetime.tzinfo):
             (self.minutes == other.minutes)
 
 
+def datetime_is_midnight_utc(d):
+    """Returns true if the datetime D represents midnight UTC.
+
+    That is, the hour, minute, second, and microsecond fields are all
+    zero, and the timezone is either absent or has an offset of zero.
+    """
+    if d.hour != 0 or d.minute != 0 or d.second != 0 or d.microsecond != 0:
+        return False
+
+    if d.tzinfo is not None and d.utcoffset() != datetime.timedelta(0):
+        return False
+
+    return True
+
+
 def undefined_to_string(undefined):
     """Convert an undefined string into its corresponding sequence of bytes.
 
@@ -313,18 +328,6 @@ class NotifyingList(list):
         self._notify_listeners()
         return self
 
-    def setslice__(self, i, j, items):
-        # __setslice__ is deprecated but needs to be overridden for completeness
-        super(NotifyingList, self).__setslice__(i, j, items)
-        self._notify_listeners()
-
-    def delslice__(self, i, j):
-        # __delslice__ is deprecated but needs to be overridden for completeness
-        deleted = self[i:j]
-        super(NotifyingList, self).__delslice__(i, j)
-        if deleted:
-            self._notify_listeners()
-
 
 class GPSCoordinate(object):
     """A class representing GPS coordinates (e.g. a latitude or a longitude).
@@ -333,9 +336,11 @@ class GPSCoordinate(object):
     properties.
     """
     _format_re = re.compile(
-        r'(?P<degrees>-?\d+),'
-        '(?P<minutes>\d+)(,(?P<seconds>\d+)|\.(?P<fraction>\d+))'
-        '(?P<direction>[NSEW])'
+        r'''
+            (?P<degrees>-?\d+) , (?P<minutes>\d+)
+            (?: , (?P<seconds>\d+) | \. (?P<fraction>\d+) )
+            (?P<direction>[NSEW])
+        ''', re.X
     )
 
     def __init__(self, degrees, minutes, seconds, direction):
@@ -432,12 +437,14 @@ class GPSCoordinate(object):
     def __eq__(self, other):
         """Compare two GPS coordinates for equality.
 
-        Two coordinates are equal if and only if all their components are equal.
+        Two coordinates are equal if and only if all their components
+        are equal.
 
         Args:
         other -- the GPSCoordinate instance to compare to self for equality
 
         Return: True if equal, False otherwise
+
         """
         return (self._degrees == other._degrees) and \
                (self._minutes == other._minutes) and \
@@ -455,17 +462,19 @@ class GPSCoordinate(object):
 
 
 class DateTimeFormatter(object):
-    """Convenience object that exposes static methods to convert a date, time or
-    datetime object to a string representation suitable for various metadata
-    standards.
+    """Convenience object that exposes static methods to convert a date,
+    time or datetime object to a string representation suitable for
+    various metadata standards.
 
     This is needed because python’s
     `strftime() <http://docs.python.org/library/datetime.html#strftime-strptime-behavior>`_
     doesn’t work for years before 1900.
 
-    This class mostly exists for internal usage only. Clients should never need
-    to use it.
-    """
+    This class mostly exists for internal usage only. Clients should
+    never need to use it.
+
+    """  # noqa: E501
+
     @staticmethod
     def timedelta_to_offset(t):
         """Convert a time delta to a string..
@@ -586,9 +595,7 @@ class DateTimeFormatter(object):
             else:
                 tz = DateTimeFormatter.timedelta_to_offset(t)
 
-            if d.hour == 0 and d.minute == 0 and \
-                d.second == 0 and d.microsecond == 0 and \
-                (d.tzinfo is None or d.utcoffset() == datetime.timedelta(0)):
+            if datetime_is_midnight_utc(d):
                 return '%04d-%02d-%02d' % (d.year, d.month, d.day)
 
             elif d.second == 0 and d.microsecond == 0:

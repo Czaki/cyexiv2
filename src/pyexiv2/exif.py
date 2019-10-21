@@ -76,9 +76,9 @@ class ExifTag(ListenerInterface):
       (Python ≥ 2.6) or :class:`pyexiv2.utils.Rational`
     - Undefined: string
     """
-    # According to the EXIF specification, the only accepted format for an Ascii
-    # value representing a datetime is '%Y:%m:%d %H:%M:%S', but it seems that
-    # others formats can be found in the wild.
+    # According to the EXIF specification, the only accepted format for an
+    # Ascii value representing a datetime is '%Y:%m:%d %H:%M:%S', but
+    # it seems that other formats can be found in the wild.
     _datetime_formats = (
         '%Y:%m:%d %H:%M:%S', '%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%SZ'
     )
@@ -487,7 +487,6 @@ class ExifTag(ListenerInterface):
                 pass
 
             else:
-                #self._set_raw_value('charset=%s %s' % (charset, val))
                 return val
 
         elif isinstance(value, bytes):
@@ -557,7 +556,6 @@ class ExifThumbnail(object):
         # Update the cache of EXIF tags
         keys = self._metadata._image._exifKeys()
         self._metadata._keys['exif'] = keys
-        #cached = self._metadata._tags['exif'].keys()
         for key in self._metadata._tags['exif'].keys():
             if key not in keys:
                 del self._metadata._tags['exif'][key]
@@ -595,6 +593,8 @@ class ExifThumbnail(object):
     data = property(
         fget=_get_data,
         fset=_set_data,
-        doc='The raw thumbnail data. Setting it is restricted to ' +
-        'a buffer in the JPEG format.'
+        doc=(
+            'The raw thumbnail data. Setting it is restricted to '
+            'a buffer in the JPEG format.'
+        )
     )

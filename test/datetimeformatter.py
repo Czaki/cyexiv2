@@ -35,14 +35,14 @@ from .testutils import D, T, DT, TD
 class TestDateTimeFormatter(unittest.TestCase):
     def test_timedelta_to_offset(self):
         cases = [
-            ('+05:00', { 'hours': 5 }),
-            ('+05:00', { 'minutes': 300 }),
-            ('+05:12', { 'hours': 5, 'minutes': 12 }),
-            ('+03:00', { 'seconds': 10800 }),
-            ('-04:00', { 'hours': -4 }),
-            ('-04:18', { 'minutes': -258 }),
-            ('-02:12', { 'hours': -2, 'minutes': -12 }),
-            ('-02:46', { 'seconds': -10000 }),
+            ('+05:00', {'hours': 5}),
+            ('+05:00', {'minutes': 300}),
+            ('+05:12', {'hours': 5, 'minutes': 12}),
+            ('+03:00', {'seconds': 10800}),
+            ('-04:00', {'hours': -4}),
+            ('-04:18', {'minutes': -258}),
+            ('-02:12', {'hours': -2, 'minutes': -12}),
+            ('-02:46', {'seconds': -10000}),
         ]  # yapf: disable
         for s, kwargs in cases:
             self.assertEqual(DTF.timedelta_to_offset(TD(**kwargs)), s)

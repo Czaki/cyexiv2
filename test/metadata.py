@@ -25,14 +25,14 @@
 #
 # ******************************************************************************
 
-from pyexiv2 import metadata
 from pyexiv2.metadata import ImageMetadata
 from pyexiv2.exif import ExifTag
 from pyexiv2.iptc import IptcTag
 from pyexiv2.xmp import XmpTag
-from pyexiv2.utils import FixedOffset, make_fraction
+from pyexiv2.utils import make_fraction
 
 import datetime
+import itertools
 import os
 import tempfile
 import time
@@ -143,25 +143,28 @@ class TestImageMetadata(unittest.TestCase):
 
     def test_write_dont_preserve_timestamps(self):
         stat = os.stat(self.pathname)
-        atime = round(stat.st_atime)
-        mtime = round(stat.st_mtime)
+        mtime1 = round(stat.st_mtime)
         metadata = ImageMetadata(self.pathname)
         metadata.read()
         metadata.comment = 'Yellow Submarine'
         time.sleep(1.1)
         metadata.write()
+
+        # metadata.read + metadata.write should have modified the
+        # mtime and may or may not also have modified the atime,
+        # depending on mount options (e.g. noatime, relatime).
+        # See discussion at <http://bugs.launchpad.net/pyexiv2/+bug/624999>.
         stat2 = os.stat(self.pathname)
         atime2 = round(stat2.st_atime)
         mtime2 = round(stat2.st_mtime)
-        # It is not safe to assume that atime will have been modified when the
-        # file has been read, as it may depend on mount options (e.g. noatime,
-        # relatime).
-        # See discussion at http://bugs.launchpad.net/pyexiv2/+bug/624999.
-        #self.assertNotEqual(atime2, atime)
-        self.assertNotEqual(mtime2, mtime)
+        self.assertNotEqual(mtime2, mtime1)
         metadata.comment = 'Yesterday'
         time.sleep(1.1)
         metadata.write(preserve_timestamps=True)
+
+        # metadata.write(preserve_timestamps=True) should not have
+        # modified either the mtime or the atime, relative to what
+        # they were at point 2.
         stat3 = os.stat(self.pathname)
         atime3 = round(stat3.st_atime)
         mtime3 = round(stat3.st_mtime)
@@ -612,10 +615,10 @@ class TestImageMetadata(unittest.TestCase):
         # doesn’t result in an ugly segmentation fault
         # (see https://bugs.launchpad.net/pyexiv2/+bug/622739).
         self.metadata.read()
-        keys = self.metadata.exif_keys + \
-               self.metadata.iptc_keys + \
-               self.metadata.xmp_keys
-        for key in keys:
+        for key in itertools.chain(
+            self.metadata.exif_keys, self.metadata.iptc_keys,
+            self.metadata.xmp_keys
+        ):
             self.metadata[key] = self.metadata[key]
 
     def test_nonexistent_tag_family(self):
@@ -757,7 +760,7 @@ class TestImageMetadata(unittest.TestCase):
         self.assertEqual(thumb.mime_type, '')
         self.assertEqual(thumb.extension, '')
         # ExifThumbnail._get_data not yet implemented
-        #self.assertEqual(thumb.data, '')
+        # self.assertEqual(thumb.data, '')
         self._test_thumbnail_tags(False)
 
     def test_set_exif_thumbnail_from_data(self):
@@ -768,7 +771,7 @@ class TestImageMetadata(unittest.TestCase):
         self.assertEqual(thumb.mime_type, 'image/jpeg')
         self.assertEqual(thumb.extension, '.jpg')
         # ExifThumbnail._get_data not yet implemented
-        #self.assertEqual(thumb.data, EMPTY_JPG_DATA)
+        # self.assertEqual(thumb.data, EMPTY_JPG_DATA)
         self._test_thumbnail_tags(True)
 
     def test_set_exif_thumbnail_from_file(self):
@@ -783,7 +786,7 @@ class TestImageMetadata(unittest.TestCase):
         self.assertEqual(thumb.mime_type, 'image/jpeg')
         self.assertEqual(thumb.extension, '.jpg')
         # ExifThumbnail._get_data not yet implemented
-        #self.assertEqual(thumb.data, EMPTY_JPG_DATA)
+        # self.assertEqual(thumb.data, EMPTY_JPG_DATA)
         self._test_thumbnail_tags(True)
 
     def test_write_exif_thumbnail_to_file(self):
@@ -809,12 +812,12 @@ class TestImageMetadata(unittest.TestCase):
         self.assertEqual(thumb.mime_type, 'image/jpeg')
         self.assertEqual(thumb.extension, '.jpg')
         # ExifThumbnail._get_data not yet implemented
-        #self.assertEqual(thumb.data, EMPTY_JPG_DATA)
+        # self.assertEqual(thumb.data, EMPTY_JPG_DATA)
         self._test_thumbnail_tags(True)
         thumb.erase()
         self.assertEqual(thumb.mime_type, '')
         self.assertEqual(thumb.extension, '')
-        #self.assertEqual(thumb.data, '')
+        # self.assertEqual(thumb.data, '')
         self._test_thumbnail_tags(False)
 
     def test_set_exif_thumbnail_from_invalid_data(self):

@@ -29,16 +29,10 @@ Provide the ImageMetadata class.
 """
 
 import os
-import sys
 import codecs
 
 from errno import ENOENT
 from itertools import chain
-
-if sys.version_info < (3, 3):
-    from collections import MutableMapping
-else:
-    from collections.abc import MutableMapping
 
 import libexiv2python
 
@@ -46,6 +40,11 @@ from pyexiv2.exif import ExifTag, ExifThumbnail
 from pyexiv2.iptc import IptcTag
 from pyexiv2.xmp import XmpTag
 from pyexiv2.preview import Preview
+
+try:
+    from collections.abc import MutableMapping
+except ImportError:
+    from collections import MutableMapping
 
 
 class ImageMetadata(MutableMapping):
@@ -528,11 +527,12 @@ class ImageMetadata(MutableMapping):
         except KeyError:
             pass
 
-    iptc_charset = property(fget=_get_iptc_charset,
-                            fset=_set_iptc_charset,
-                            fdel=_del_iptc_charset,
-                            doc='An optional character set the IPTC data'\
-                                ' is encoded in.')
+    iptc_charset = property(
+        fget=_get_iptc_charset,
+        fset=_set_iptc_charset,
+        fdel=_del_iptc_charset,
+        doc='An optional character set the IPTC data is encoded in.'
+    )
 
     # Some convenient functions -------------------------------------------
     def get_iso(self):
@@ -559,7 +559,7 @@ class ImageMetadata(MutableMapping):
         if float_:
             if speed.denominator:
                 return speed.numerator / speed.denominator
-            return float(numerator)
+            return float(speed.numerator)
 
         return speed
 
