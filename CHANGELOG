@@ -1,5 +1,8 @@
 PYTHON3-EXIV2
 
+Change in 0.8.0  [unreleased]
+ * The top-level libexiv2python module has been removed.
+
 Change in 0.7.1  Sat, 28 May 2019
  * Minor changes in order to compile on OS X platform
 
