@@ -28,14 +28,13 @@
 XMP specific code.
 """
 
-import libexiv2python
-
-from pyexiv2.utils import (
-    FixedOffset, is_fraction, make_fraction, GPSCoordinate, DateTimeFormatter
-)
-
 import datetime
 import re
+
+from . import _libexiv2
+from .utils import (
+    FixedOffset, is_fraction, make_fraction, GPSCoordinate, DateTimeFormatter
+)
 
 
 class XmpValueError(ValueError):
@@ -120,7 +119,7 @@ class XmpTag(object):
             self._tag = _tag
 
         else:
-            self._tag = libexiv2python._XmpTag(key)
+            self._tag = _libexiv2._XmpTag(key)
 
         self._raw_value = None
         self._value = None
@@ -133,7 +132,7 @@ class XmpTag(object):
 
     @staticmethod
     def _from_existing_tag(_tag):
-        """Build a tag from an already existing libexiv2python._XmpTag.
+        """Build a tag from an already existing _libexiv2._XmpTag.
 
         """
         tag = XmpTag(_tag._getKey(), _tag=_tag)
@@ -544,7 +543,7 @@ class XmpTag(object):
 
     def __setstate__(self, state):
         key, raw_value = state
-        self._tag = libexiv2python._XmpTag(key)
+        self._tag = _libexiv2._XmpTag(key)
         self.raw_value = raw_value
 
 
@@ -563,7 +562,7 @@ def initialiseXmpParser():
     suitable additional locking parameters, any subsequent registration of
     namespaces will be thread-safe.
     """
-    libexiv2python._initialiseXmpParser()
+    _libexiv2._initialiseXmpParser()
 
 
 def closeXmpParser():
@@ -574,7 +573,7 @@ def closeXmpParser():
     Call this method when the XmpParser is no longer needed to allow the XMP
     Toolkit to cleanly shutdown.
     """
-    libexiv2python._closeXmpParser()
+    _libexiv2._closeXmpParser()
 
 
 def register_namespace(name, prefix):
@@ -598,7 +597,7 @@ def register_namespace(name, prefix):
     if not name.endswith('/'):
         raise ValueError('Name should end with a /')
 
-    libexiv2python._registerXmpNs(name, prefix)
+    _libexiv2._registerXmpNs(name, prefix)
 
 
 def unregister_namespace(name):
@@ -619,7 +618,7 @@ def unregister_namespace(name):
     if not name.endswith('/'):
         raise ValueError('Name should end with a /')
 
-    libexiv2python._unregisterXmpNs(name)
+    _libexiv2._unregisterXmpNs(name)
 
 
 def unregister_namespaces():
@@ -628,4 +627,4 @@ def unregister_namespaces():
     Builtin namespaces are not unregistered.
     This function always succeeds.
     """
-    libexiv2python._unregisterAllXmpNs()
+    _libexiv2._unregisterAllXmpNs()

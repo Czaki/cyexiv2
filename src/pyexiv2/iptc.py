@@ -28,15 +28,14 @@
 IPTC specific code.
 """
 
-import libexiv2python
-
-from pyexiv2.utils import (
-    DateTimeFormatter, FixedOffset, ListenerInterface, NotifyingList
-)
-
-import time
 import datetime
 import re
+import time
+
+from . import _libexiv2
+from .utils import (
+    DateTimeFormatter, FixedOffset, ListenerInterface, NotifyingList
+)
 
 
 class IptcValueError(ValueError):
@@ -94,7 +93,7 @@ class IptcTag(ListenerInterface):
             self._tag = _tag
 
         else:
-            self._tag = libexiv2python._IptcTag(key)
+            self._tag = _libexiv2._IptcTag(key)
 
         self._raw_values = None
         self._values = None
@@ -107,7 +106,7 @@ class IptcTag(ListenerInterface):
 
     @staticmethod
     def _from_existing_tag(_tag):
-        # Build a tag from an already existing libexiv2python._IptcTag
+        # Build a tag from an already existing _libexiv2._IptcTag
         tag = IptcTag(_tag._getKey(), _tag=_tag)
         # Do not set the raw_value property, as it would call
         # _tag._setRawValues
@@ -391,5 +390,5 @@ class IptcTag(ListenerInterface):
 
     def __setstate__(self, state):
         key, raw_value = state
-        self._tag = libexiv2python._IptcTag(key)
+        self._tag = _libexiv2._IptcTag(key)
         self.raw_value = raw_value

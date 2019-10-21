@@ -28,18 +28,16 @@
 Provide the ImageMetadata class.
 """
 
-import os
 import codecs
-
+import os
 from errno import ENOENT
 from itertools import chain
 
-import libexiv2python
-
-from pyexiv2.exif import ExifTag, ExifThumbnail
-from pyexiv2.iptc import IptcTag
-from pyexiv2.xmp import XmpTag
-from pyexiv2.preview import Preview
+from . import _libexiv2
+from .exif import ExifTag, ExifThumbnail
+from .iptc import IptcTag
+from .preview import Preview
+from .xmp import XmpTag
 
 try:
     from collections.abc import MutableMapping
@@ -82,7 +80,7 @@ class ImageMetadata(MutableMapping):
         stat = os.stat(filename)
         self._atime = stat.st_atime
         self._mtime = stat.st_mtime
-        return libexiv2python._Image(filename)
+        return _libexiv2._Image(filename)
 
     @classmethod
     def from_buffer(cls, buffer_):
@@ -92,7 +90,7 @@ class ImageMetadata(MutableMapping):
         buffer_ -- a memoryview containing image data as bytes
         """
         obj = cls(None)
-        obj.__image = libexiv2python._Image(buffer_, len(buffer_))
+        obj.__image = _libexiv2._Image(buffer_, len(buffer_))
         return obj
 
     @property

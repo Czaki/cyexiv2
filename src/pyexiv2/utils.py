@@ -30,7 +30,6 @@ Utilitary classes and functions.
 
 import datetime
 import re
-
 from fractions import Fraction
 
 

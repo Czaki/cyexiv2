@@ -70,12 +70,11 @@ setup(
     package_dir={'': 'src'},
     package_data={'': [
         'src/*.cpp',
-        'src/*.hpp',
     ]},
     ext_modules=[
         Extension(
-            'libexiv2python',
-            ['src/exiv2wrapper.cpp', 'src/exiv2wrapper_python.cpp'],
+            'pyexiv2._libexiv2',
+            ['src/pyexiv2/_libexiv2.cpp'],
             libraries=[boostlib, 'exiv2'],
             extra_compile_args=['-g']
         )

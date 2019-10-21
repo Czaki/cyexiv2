@@ -36,9 +36,6 @@ For example, a tag containing a date/time information for the image
 (e.g. Exif.Photo.DateTimeOriginal) will be represented by a python
 datetime.datetime object.
 
-This module is a python layer on top of the low-level python binding of the
-C++ library Exiv2, libexiv2python.
-
 A typical use of this binding would be:
 
 >>> import pyexiv2
@@ -57,24 +54,23 @@ A typical use of this binding would be:
 >>> metadata.write()
 """
 
-import libexiv2python
-
-from pyexiv2.metadata import ImageMetadata
-from pyexiv2.exif import ExifValueError, ExifTag, ExifThumbnail
-from pyexiv2.iptc import IptcValueError, IptcTag
-from pyexiv2.xmp import (
-    XmpValueError, XmpTag, register_namespace, unregister_namespace,
-    unregister_namespaces
-)
-from pyexiv2.preview import Preview
-from pyexiv2.utils import (
+from . import _libexiv2
+from .exif import ExifValueError, ExifTag, ExifThumbnail
+from .iptc import IptcValueError, IptcTag
+from .metadata import ImageMetadata
+from .preview import Preview
+from .utils import (
     FixedOffset, NotifyingList, undefined_to_string, string_to_undefined,
     GPSCoordinate
+)
+from .xmp import (
+    XmpValueError, XmpTag, register_namespace, unregister_namespace,
+    unregister_namespaces
 )
 
 
 def _make_version(version_info):
-    return '.'.join([str(i) for i in version_info])
+    return '.'.join(str(i) for i in version_info)
 
 
 #: A tuple containing the three components of the version number:
@@ -86,7 +82,7 @@ __version__ = _make_version(version_info)
 
 #: A tuple containing the three components of the version number of libexiv2:
 #: major, minor, micro.
-exiv2_version_info = libexiv2python.exiv2_version_info
+exiv2_version_info = _libexiv2.exiv2_version_info
 
 #: The version of libexiv2 as a string (major.minor.micro).
 __exiv2_version__ = _make_version(exiv2_version_info)
@@ -109,7 +105,6 @@ __all__ = [
     'exif',
     'exiv2_version_info',
     'iptc',
-    'libexiv2python',
     'metadata',
     'preview',
     'register_namespace',

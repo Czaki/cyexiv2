@@ -28,17 +28,16 @@
 EXIF specific code.
 """
 
-import libexiv2python
+import datetime
+import sys
+import time
 
-from pyexiv2.utils import (
+from . import _libexiv2
+from .utils import (
     is_fraction, make_fraction, fraction_to_string, NotifyingList,
     ListenerInterface, undefined_to_string, string_to_undefined,
     DateTimeFormatter
 )
-
-import time
-import datetime
-import sys
 
 
 class ExifValueError(ValueError):
@@ -98,7 +97,7 @@ class ExifTag(ListenerInterface):
             self._tag = _tag
 
         else:
-            self._tag = libexiv2python._ExifTag(key)
+            self._tag = _libexiv2._ExifTag(key)
 
         self._raw_value = None
         self._value = None
@@ -111,7 +110,7 @@ class ExifTag(ListenerInterface):
 
     @staticmethod
     def _from_existing_tag(_tag):
-        """Build a tag from an already existing libexiv2python._ExifTag.
+        """Build a tag from an already existing _libexiv2._ExifTag.
 
         """
         tag = ExifTag(_tag._getKey(), _tag=_tag)
@@ -518,7 +517,7 @@ class ExifTag(ListenerInterface):
 
     def __setstate__(self, state):
         key, raw_value = state
-        self._tag = libexiv2python._ExifTag(key)
+        self._tag = _libexiv2._ExifTag(key)
         self.raw_value = raw_value
 
 
