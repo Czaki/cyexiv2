@@ -37,6 +37,16 @@
 
 namespace {
 
+// RAII class to release and re-acquire the GIL.
+class release_gil
+{
+    PyThreadState *state;
+public:
+    release_gil() : state(PyEval_SaveThread()) {}
+    ~release_gil() { PyEval_RestoreThread(state); }
+};
+
+
 class Image;
 
 class ExifTag
@@ -304,16 +314,11 @@ void Image::_instantiate_image()
 {
     _exifThumbnail = 0;
 
-    // If an exception is thrown, it has to be done outside of the
-    // Py_{BEGIN,END}_ALLOW_THREADS block.
-    Exiv2::Error error = Exiv2::Error(Exiv2::kerSuccess);
-
     // Release the GIL to allow other python threads to run
     // while opening the file.
-    Py_BEGIN_ALLOW_THREADS
-
-    try
     {
+        release_gil in_this_block;
+
         if (_data != 0)
         {
             _image = Exiv2::ImageFactory::open(_data, _size);
@@ -324,23 +329,8 @@ void Image::_instantiate_image()
         }
     }
 
-    catch (Exiv2::Error& err)
-    {
-        //std::cout << " Caught Exiv2 exception '" << err.code() << "'\n";
-        error = err;
-    }
-    // Re-acquire the GIL
-    Py_END_ALLOW_THREADS
-
-    if (error.code() == 0)
-    {
-        assert(_image.get() != 0);
-        _dataRead = false;
-    }
-    else
-    {
-        throw error;
-    }
+    assert(_image.get() != 0);
+    _dataRead = false;
 }
 
 // Base constructor
@@ -386,67 +376,27 @@ Image::~Image()
 
 void Image::readMetadata()
 {
-    // If an exception is thrown, it has to be done outside of the
-    // Py_{BEGIN,END}_ALLOW_THREADS block.
-    Exiv2::Error error = Exiv2::Error(Exiv2::kerSuccess);
-
     // Release the GIL to allow other python threads to run
     // while reading metadata.
-    Py_BEGIN_ALLOW_THREADS
+    release_gil in_this_block;
 
-    try
-    {
-        _image->readMetadata();
-        _exifData = &_image->exifData();
-        _iptcData = &_image->iptcData();
-        _xmpData = &_image->xmpData();
-        _dataRead = true;
-    }
-
-    catch (Exiv2::Error& err)
-    {
-        //std::cout << " Caught Exiv2 exception '" << err.code() << "'\n";
-        error = err;
-    }
-
-    // Re-acquire the GIL
-    Py_END_ALLOW_THREADS
-
-    if (error.code() != 0)
-    {
-        throw error;
-    }
+    _image->readMetadata();
+    _exifData = &_image->exifData();
+    _iptcData = &_image->iptcData();
+    _xmpData = &_image->xmpData();
+    _dataRead = true;
 }
 
 void Image::writeMetadata()
 {
     check_metadata_read();
 
-    // If an exception is thrown, it has to be done outside of the
-    // Py_{BEGIN,END}_ALLOW_THREADS block.
-    Exiv2::Error error = Exiv2::Error(Exiv2::kerSuccess);
-
     // Release the GIL to allow other python threads to run
     // while writing metadata.
-    Py_BEGIN_ALLOW_THREADS
-
-    try
     {
+        release_gil in_this_block;
+
         _image->writeMetadata();
-    }
-
-    catch (Exiv2::Error& err)
-    {
-        //std::cout << "Caught Exiv2 exception '" << err.code() << "'\n";
-        error = err;
-    }
-
-    // Re-acquire the GIL
-    Py_END_ALLOW_THREADS
-
-    if (error.code() != 0)
-    {
-        throw error;
     }
 }
 
@@ -1664,3 +1614,9 @@ BOOST_PYTHON_MODULE(_libexiv2)
     def("_unregisterXmpNs", unregisterXmpNs, args("name"));
     def("_unregisterAllXmpNs", unregisterAllXmpNs);
 }
+
+// Local Variables:
+// c-basic-offset: 4
+// c-file-style: "gnu"
+// c-file-offsets: ((innamespace . 0) (substatement-open . 0))
+// End:
