@@ -1324,7 +1324,8 @@ void translateExiv2Error(Exiv2::Error const& error)
 
     // The type of the Python exception depends on the error code
     // Warning: this piece of code should be updated in case the error codes
-    // defined by Exiv2 (file 'src/error.cpp') are changed
+    // defined by Exiv2 (file 'src/error.cpp') are changed.
+    // The cast is because error.code() returns an int.
     switch ((Exiv2::ErrorCode)error.code())
     {
         // I/O error while reading or writing an image.  There may be
