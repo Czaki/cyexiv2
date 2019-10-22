@@ -46,6 +46,44 @@ public:
     ~release_gil() { PyEval_RestoreThread(state); }
 };
 
+// RAII class to save and restore an Exiv2::BasicIo seek position
+// (if the file is already open) or open the file and close it again
+// (if it wasn't already open).
+class preserve_read_state
+{
+    Exiv2::BasicIo& io;
+    long pos;
+public:
+    preserve_read_state(Exiv2::BasicIo& io)
+        : io(io), pos(-1)
+    {
+        if (io.isopen())
+        {
+            // Remember the current position in the stream
+            pos = io.tell();
+            // Go to the beginning of the stream
+            io.seek(0, Exiv2::BasicIo::beg);
+        }
+        else
+        {
+            io.open();
+        }
+    }
+
+    ~preserve_read_state()
+    {
+        if (pos == -1)
+        {
+            // The stream was initially closed
+            io.close();
+        }
+        else
+        {
+            // Reset to the previous position in the stream
+            io.seek(pos, Exiv2::BasicIo::beg);
+        }
+    }
+};
 
 class Image;
 
@@ -611,58 +649,77 @@ void Image::copyMetadata(Image& other, bool exif, bool iptc, bool xmp) const
 
 boost::python::object Image::getDataBuffer() const
 {
-    std::string buffer;
-
-    // Release the GIL to allow other python threads to run
-    // while reading the image data.
-    Py_BEGIN_ALLOW_THREADS
-
     Exiv2::BasicIo& io = _image->io();
     unsigned long size = io.size();
-    long pos = -1;
-
-    if (io.isopen())
+    if (size > (unsigned long)LONG_MAX)
     {
-        // Remember the current position in the stream
-        pos = io.tell();
-        // Go to the beginning of the stream
-        io.seek(0, Exiv2::BasicIo::beg);
-    }
-    else
-    {
-        io.open();
+        // The image is too large to represent in memory.
+        throw std::bad_alloc();
     }
 
-    // Copy the data buffer in a string. Since the data buffer can contain null
-    // characters ('\x00'), the string cannot be simply constructed like that:
-    //     buffer = std::string((char*) previewImage.pData());
-    // because it would be truncated after the first occurence of a null
-    // character. Therefore, it has to be copied character by character.
-    // First allocate the memory for the whole string...
-    buffer.resize(size, ' ');
-    // ... then fill it with the raw data.
-    for (unsigned long i = 0; i < size; ++i)
+    long ssize = (long) size;
+    long readpos = 0;
+    long nread;
+
+    // Use the PyBytes_* API to create a data buffer that we can read
+    // directly into.  This must be done before releasing the GIL.
+    PyObject *buffer = PyBytes_FromStringAndSize(NULL, size);
+    if (!buffer)
     {
-        io.read((Exiv2::byte*) &buffer[i], 1);
+        throw std::bad_alloc();
+    }
+    // Arrange to deallocate 'buffer' if an exception is thrown after
+    // this point.
+    boost::python::handle<> buffer_h(buffer);
+
+    // Because the bytes object is brand new and we hold the only
+    // reference to it, we are allowed to write into its data area.
+    // See https://docs.python.org/3/c-api/bytes.html#c.PyBytes_AsString
+    void *data = PyBytes_AS_STRING(buffer);
+
+    {
+        // Release the GIL to allow other python threads to run
+        // while reading the image data.
+        release_gil in_this_block;
+
+        // Save and restore the seek position within the image, or
+        // open and close the image file, as necessary.
+        preserve_read_state of(io);
+
+        // Copy from the file into the Python buffer.
+        do
+        {
+            nread = io.read(((Exiv2::byte*)data) + readpos, ssize - readpos);
+            readpos += nread;
+        }
+        while (nread > 0 && readpos < ssize);
+
+    } // GIL re-acquired and io reset to its previous state here
+
+    // Direct access to the buffer's data area after this point would
+    // be a bug.
+    data = 0;
+
+    // If we got the amount of data we expected, we're done.
+    if (readpos == ssize)
+    {
+        return boost::python::object(buffer_h);
     }
 
-    if (pos == -1)
-    {
-        // The stream was initially closed
-        io.close();
-    }
-    else
-    {
-        // Reset to the initial position in the stream
-        io.seek(pos, Exiv2::BasicIo::beg);
-    }
+    // If there was less data than expected, truncate the buffer to
+    // the size of the data actually read.  This calls into the Python
+    // allocator, so it must happen after re-acquiring the GIL.
+    // _PyBytes_Resize may change the raw buffer pointer, so we have
+    // to take it back from buffer_h.
+    buffer_h.release();
 
-    // Re-acquire the GIL
-    Py_END_ALLOW_THREADS
-
-    return boost::python::object(boost::python::handle<>(
-        PyBytes_FromStringAndSize(buffer.c_str(), buffer.size())
-        ));
+    if (_PyBytes_Resize(&buffer, (unsigned long)readpos))
+    {
+        // If _PyBytes_Resize fails, it deallocates the original
+        // buffer.
+        throw std::bad_alloc();
+    }
+    return boost::python::object(boost::python::handle<>(buffer));
 }
 
 Exiv2::ByteOrder Image::getByteOrder() const
