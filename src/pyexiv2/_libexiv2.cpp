@@ -32,7 +32,7 @@
 #include "boost/python/stl_iterator.hpp"
 
 #if EXIV2_MAJOR_VERSION == 0 && EXIV2_MINOR_VERSION < 27
-# error "libexiv2 is too old (version 0.27 or later required"
+# error "libexiv2 is too old (version 0.27 or later required)"
 #endif
 
 namespace {
