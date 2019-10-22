@@ -29,7 +29,7 @@ import unittest
 
 from pyexiv2.iptc import IptcTag, IptcValueError
 
-from .testutils import D, T, DT
+from .helpers import D, T, DT
 
 # The Iptc.Application2.Preview tag contains raw binary data (normally
 # a thumbnail image) which, for historical reasons, gets stuffed into

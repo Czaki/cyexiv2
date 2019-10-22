@@ -38,7 +38,7 @@ import tempfile
 import time
 import unittest
 
-from .testutils import EMPTY_JPG_DATA
+from .helpers import EMPTY_JPG_DATA
 
 
 class TestImageMetadata(unittest.TestCase):

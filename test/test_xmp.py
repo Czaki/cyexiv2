@@ -33,7 +33,7 @@ from pyexiv2.xmp import (
     unregister_namespaces
 )
 
-from .testutils import EMPTY_JPG_DATA, D, DT, FR
+from .helpers import EMPTY_JPG_DATA, D, DT, FR
 
 
 class TestXmpTag(unittest.TestCase):

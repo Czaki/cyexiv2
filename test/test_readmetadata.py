@@ -30,7 +30,7 @@ import unittest
 import pyexiv2
 from pyexiv2.utils import is_fraction, GPSCoordinate as GPS
 
-from .testutils import get_absolute_file_path, md5sum_file, FR, D, Dt, DT
+from .helpers import get_absolute_file_path, md5sum_file, FR, D, Dt, DT
 
 FRACTION = 'fraction'
 

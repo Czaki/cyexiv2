@@ -30,7 +30,7 @@ import unittest
 from pyexiv2.exif import ExifTag, ExifValueError
 from pyexiv2.metadata import ImageMetadata
 
-from .testutils import get_absolute_file_path, md5sum_file, D, DT, FR
+from .helpers import get_absolute_file_path, md5sum_file, D, DT, FR
 
 
 class TestExifTag(unittest.TestCase):

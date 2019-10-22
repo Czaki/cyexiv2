@@ -29,7 +29,7 @@ import unittest
 
 from pyexiv2.utils import DateTimeFormatter as DTF
 
-from .testutils import D, T, DT, TD
+from .helpers import D, T, DT, TD
 
 
 class TestDateTimeFormatter(unittest.TestCase):

@@ -31,7 +31,7 @@ import unittest
 
 from pyexiv2.metadata import ImageMetadata
 
-from . import testutils
+from .helpers import get_absolute_file_path, md5sum_file, EMPTY_JPG_DATA
 
 
 class TestUserCommentReadWrite(unittest.TestCase):
@@ -43,10 +43,8 @@ class TestUserCommentReadWrite(unittest.TestCase):
     }
 
     def _read_image(self, filename):
-        filepath = testutils.get_absolute_file_path('data', filename)
-        self.assertEqual(
-            testutils.md5sum_file(filepath), self.checksums[filename]
-        )
+        filepath = get_absolute_file_path('data', filename)
+        self.assertEqual(md5sum_file(filepath), self.checksums[filename])
         m = ImageMetadata(filepath)
         m.read()
         return m
@@ -79,7 +77,7 @@ class TestUserCommentAdd(unittest.TestCase):
     def setUp(self):
         # Create an empty image file
         fd, self.pathname = tempfile.mkstemp(suffix='.jpg')
-        os.write(fd, testutils.EMPTY_JPG_DATA)
+        os.write(fd, EMPTY_JPG_DATA)
         os.close(fd)
 
     def tearDown(self):

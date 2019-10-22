@@ -32,15 +32,15 @@ from datetime import datetime
 
 from pyexiv2.metadata import ImageMetadata
 
-from . import testutils
+from .helpers import get_absolute_file_path, md5sum_file
 
 
 class TestBuffer(unittest.TestCase):
     def setUp(self):
         filename = os.path.join('data', 'smiley1.jpg')
-        self.filepath = testutils.get_absolute_file_path(filename)
+        self.filepath = get_absolute_file_path(filename)
         self.md5sum = 'c066958457c685853293058f9bf129c1'
-        self.assertEqual(testutils.md5sum_file(self.filepath), self.md5sum)
+        self.assertEqual(md5sum_file(self.filepath), self.md5sum)
 
     def _metadata_from_buffer(self):
         fd = open(self.filepath, 'rb')
