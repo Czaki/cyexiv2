@@ -213,7 +213,9 @@ class TestImageMetadata(unittest.TestCase):
         self.assertEqual(self.metadata._tags['exif'], {tag.key: tag})
         self.assertTrue(tag.key in self.metadata._image._exifKeys())
         self.assertEqual(
-            self.metadata._image._getExifTag(tag.key)._getRawValue(),
+            self.metadata._image
+                ._getExifTag(tag.key)._getRawValue()
+                .decode('ascii'),
             tag.raw_value
         )
 
@@ -228,7 +230,9 @@ class TestImageMetadata(unittest.TestCase):
         self.assertEqual(self.metadata._tags['exif'], {tag.key: tag})
         self.assertTrue(tag.key in self.metadata._image._exifKeys())
         self.assertEqual(
-            self.metadata._image._getExifTag(tag.key)._getRawValue(),
+            self.metadata._image
+                ._getExifTag(tag.key)._getRawValue()
+                .decode('ascii'),
             tag.raw_value
         )
 
@@ -244,7 +248,9 @@ class TestImageMetadata(unittest.TestCase):
         self.assertEqual(self.metadata._tags['exif'], {key: new_tag})
         self.assertTrue(key in self.metadata._image._exifKeys())
         self.assertEqual(
-            self.metadata._image._getExifTag(key)._getRawValue(),
+            self.metadata._image
+                ._getExifTag(key)._getRawValue()
+                .decode('ascii'),
             new_tag.raw_value
         )
 
@@ -261,7 +267,10 @@ class TestImageMetadata(unittest.TestCase):
         self.assertEqual(tag.value, value)
         self.assertEqual(self.metadata._tags['exif'], {key: tag})
         self.assertEqual(
-            self.metadata._image._getExifTag(key)._getRawValue(), tag.raw_value
+            self.metadata._image
+                ._getExifTag(key)._getRawValue()
+                .decode('ascii'),
+            tag.raw_value
         )
 
     def test_delete_exif_tag_inexistent(self):
@@ -331,7 +340,7 @@ class TestImageMetadata(unittest.TestCase):
         self.assertTrue(tag.key in self.metadata._image._iptcKeys())
         self.assertEqual(
             self.metadata._image._getIptcTag(tag.key)._getRawValues(),
-            ['Nobody']
+            [b'Nobody']
         )
 
     def test_set_iptc_tag_overwrite(self):
@@ -344,7 +353,7 @@ class TestImageMetadata(unittest.TestCase):
         self.assertTrue(tag.key in self.metadata._image._iptcKeys())
         self.assertEqual(
             self.metadata._image._getIptcTag(tag.key)._getRawValues(),
-            ['A picture.']
+            [b'A picture.']
         )
 
     def test_set_iptc_tag_overwrite_already_cached(self):
@@ -360,7 +369,7 @@ class TestImageMetadata(unittest.TestCase):
         self.assertTrue(key in self.metadata._image._iptcKeys())
         self.assertEqual(
             self.metadata._image._getIptcTag(key)._getRawValues(),
-            ['A picture.']
+            [b'A picture.']
         )
 
     def test_set_iptc_tag_direct_value_assignment(self):
@@ -376,7 +385,7 @@ class TestImageMetadata(unittest.TestCase):
         self.assertEqual(tag.value, values)
         self.assertEqual(self.metadata._tags['iptc'], {key: tag})
         self.assertEqual(
-            self.metadata._image._getIptcTag(key)._getRawValues(), ['Nobody']
+            self.metadata._image._getIptcTag(key)._getRawValues(), [b'Nobody']
         )
 
     def test_delete_iptc_tag_inexistent(self):
@@ -826,7 +835,7 @@ class TestImageMetadata(unittest.TestCase):
         self.metadata.read()
         self._test_thumbnail_tags(False)
         thumb = self.metadata.exif_thumbnail
-        thumb.data = 'invalid'
+        thumb.data = b'invalid'
         self.assertEqual(thumb.mime_type, 'image/jpeg')
         self._test_thumbnail_tags(True)
 

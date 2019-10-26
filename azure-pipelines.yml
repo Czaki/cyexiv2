@@ -26,5 +26,5 @@ steps:
   displayName: 'Use Python $(python.version)'
 
 - script: |
-    python ./ci/build-azure.py
+    exec ./ci/build-azure.py
   displayName: 'Build and test'

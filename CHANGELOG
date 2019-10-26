@@ -1,6 +1,11 @@
-PYTHON3-EXIV2
+CYEXIV2
 
 Change in 0.8.0  [unreleased]
+ * No longer uses Boost.Python; instead uses Cython.
+ * The type of exception thrown under some error conditions has changed.
+ * Some accessors have changed from producing Unicode strings to producing
+   byte strings, or vice versa.  The new behavior is hopefully more
+   predictable.
  * The top-level libexiv2python module has been removed.
 
 Change in 0.7.1  Sat, 28 May 2019

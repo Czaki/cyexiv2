@@ -24,51 +24,22 @@
 #
 # ******************************************************************************
 
-# Replacement setup.py for py3exiv2, that allows building on OSX
-# https://gist.github.com/ndevenish/6410cab393bd8dec1b016061ddb5573b
-
-import sys
 import os
-import glob
-import platform
 
 from setuptools import setup, find_packages, Extension
+from Cython.Build import cythonize
 
-from codecs import open
-from os import path
-
-here = path.abspath(path.dirname(__file__))
-
-# Get the long description from the relevant file
-with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as f:
-    long_description = f.read()
-
-
-def get_libboost_osx():
-    places = ["/usr/local/lib/"]
-    for place in places:
-        lib = place + "libboost_python3*.dylib"
-        files = glob.glob(lib)
-        for f in files:
-            if "-mt" not in f:
-                return os.path.basename(f).replace("lib", "").split(".")[0]
-
-        print("NOT FOUND", files)
-        sys.exit()
-
-
-if platform.system() == "Darwin":
-    boostlib = get_libboost_osx()
-    print(boostlib)
-
-else:
-    boostlib = 'boost_python3'
+def read_long_description():
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "DESCRIPTION.rst"),
+              encoding="utf-8") as f:
+        return f.read()
 
 setup(
-    name='py3exiv2',
+    name='cyexiv2',
     version='0.8.0.dev0',
     description='A Python3 binding to the library exiv2',
-    long_description=long_description,
+    long_description=read_long_description(),
     url='https://bitbucket.org/elwoz/pyexiv2-zw/src/trunk/',
     author='Vincent Vande Vyvre',
     author_email='vincent.vandevyvre@oqapy.eu',
@@ -77,14 +48,16 @@ setup(
     python_requires='>= 3.3',
     packages=find_packages('src'),
     package_dir={'': 'src'},
-    ext_modules=[
+    ext_modules=cythonize([
         Extension(
             'pyexiv2._libexiv2',
-            ['src/pyexiv2/_libexiv2.cpp'],
-            libraries=[boostlib, 'exiv2'],
+            ['src/pyexiv2/_libexiv2.pyx'],
+            depends=['src/pyexiv2/_libexiv2_if.pxd',
+                     'src/pyexiv2/_libexiv2_if.hpp'],
+            libraries=['exiv2'],
             extra_compile_args=['-g']
         )
-    ],
+    ]),
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[

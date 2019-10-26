@@ -102,7 +102,7 @@ def build_generic():
 
     sys.stdout.write("--- Installing dependencies ---\n")
     sys.stdout.flush()
-    R(["sudo", "apt", "install", "-y", "libboost-python-dev", "libexiv2-dev"])
+    R(["sudo", "apt", "install", "-y", "cython3", "libexiv2-dev"])
     R([python, "-m", "pip", "install", "--upgrade", "pip"])
     R(["pip", "install", "--upgrade",
        "setuptools", "wheel", "pytest", "pytest-azurepipelines"])

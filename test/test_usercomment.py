@@ -53,7 +53,7 @@ class TestUserCommentReadWrite(unittest.TestCase):
         m = self._read_image('usercomment-ascii.jpg')
         tag = m['Exif.Photo.UserComment']
         self.assertEqual(tag.type, 'Comment')
-        self.assertEqual(tag.raw_value, 'charset="Ascii" deja vu')
+        self.assertEqual(tag.raw_value, b'charset="Ascii" deja vu')
         self.assertEqual(tag.value, 'deja vu')
 
     def test_write_ascii(self):

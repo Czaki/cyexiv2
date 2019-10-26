@@ -273,6 +273,8 @@ class IptcTag(ListenerInterface):
             return value
 
         elif self.type == 'Date':
+            if isinstance(value, bytes):
+                value = value.decode('ascii')
             # According to the IPTC specification, the format for a string
             # field representing a date is '%Y%m%d'.  However, the string
             # returned by exiv2 using method DateValue::toString() is
@@ -285,6 +287,8 @@ class IptcTag(ListenerInterface):
                 raise IptcValueError(value, self.type)
 
         elif self.type == 'Time':
+            if isinstance(value, bytes):
+                value = value.decode('ascii')
             # According to the IPTC specification, the format for a string
             # field representing a time is '%H%M%S±%H%M'. However, the string
             # returned by exiv2 using method TimeValue::toString() is

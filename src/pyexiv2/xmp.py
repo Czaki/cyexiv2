@@ -48,11 +48,11 @@ class XmpValueError(ValueError):
     """
     def __init__(self, value, type_):
         self.value = value
-        self.type = type
+        self.type_ = type_
 
     def __str__(self):
-        return 'Invalid value for XMP type [%s]: [%s]' % \
-               (self.type, self.value)
+        return 'Invalid value for XMP type %r: %r' % \
+               (self.type_, self.value)
 
 
 class XmpTag(object):

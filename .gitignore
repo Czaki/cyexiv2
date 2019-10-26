@@ -27,14 +27,23 @@ pip-log.txt
 /var/
 /wheels/
 
-# C generated files
+# Cython generated files.  Only _libexiv2.cpp is used; the other two
+# may get generated if cython is run directly.
+/src/pyexiv2/_libexiv2.cpp
+/src/pyexiv2/_libexiv2.c
+/src/pyexiv2/_libexiv2.html
+
+# Compiled code artifacts
 *.a
+*.dll
 *.gcda
 *.gcno
 *.la
+*.lib
 *.lo
 *.log
 *.o
+*.obj
 *.so
 *.trs
 *.T

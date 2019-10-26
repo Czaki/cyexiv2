@@ -287,6 +287,14 @@ class ExifTag(ListenerInterface):
         :raise ExifValueError: if the conversion fails
         """
         if self.type == 'Ascii':
+            if isinstance(value, bytes):
+                try:
+                    value = value.decode('utf-8')
+                except UnicodeDecodeError:
+                    # TODO: guess the encoding and decode accordingly
+                    # into unicode where relevant.
+                    return value
+
             # The value may contain a Datetime
             for format in self._datetime_formats:
                 try:
@@ -303,10 +311,8 @@ class ExifTag(ListenerInterface):
                     continue
                 else:
                     return datetime.date(*t[:3])
-            # Default to string.
-            # There is currently no charset conversion.
-            # TODO: guess the encoding and decode accordingly into unicode
-            # where relevant.
+
+            # If we couldn't parse it as a Date, return it as a string.
             return value
 
         elif self.type in ('Byte', 'SByte'):
@@ -322,8 +328,9 @@ class ExifTag(ListenerInterface):
                 return value
 
             if value.startswith(b'charset='):
-                charset = charset.split('=')[1].strip('"')
-                encoding = self._match_encoding(charset)
+                charset, val = value.split(b' ', 1)
+                charset = charset.split(b'=')[1].strip(b'"')
+                encoding = self._match_encoding(charset.decode("ascii"))
                 return val.decode(encoding, 'replace')
 
             else:
@@ -349,8 +356,10 @@ class ExifTag(ListenerInterface):
 
         elif self.type in ('Rational', 'SRational'):
             try:
+                if not isinstance(value, str):
+                    value = value.decode('ascii')
                 r = make_fraction(value)
-            except (ValueError, ZeroDivisionError):
+            except (ValueError, ZeroDivisionError, UnicodeDecodeError):
                 raise ExifValueError(value, self.type)
 
             else:
