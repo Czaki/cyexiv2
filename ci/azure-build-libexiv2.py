@@ -125,6 +125,8 @@ def download_and_unpack_libexiv2():
         download_and_check_hash(EXIV2_SRC_URL, EXIV2_SRC_SHA256, fp)
 
     R(["tar", "axf", EXIV2_SRC_BASE])
+    sys.stdout.write("##[command]cd {}\n".format(EXIV2_SRC_DIR))
+    sys.stdout.flush()
     os.chdir(EXIV2_SRC_DIR)
 
 
@@ -132,11 +134,13 @@ def build_libexiv2_ubuntu():
     with tempfile.TemporaryDirectory() as scratch:
         os.chdir(scratch)
         download_and_unpack_libexiv2()
+        sys.stdout.write("##[command]mkdir build && cd build\n")
+        sys.stdout.flush()
         os.mkdir("build")
         os.chdir("build")
         R(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
         R(["cmake", "--build", "."])
-        R(["make", "test"])
+        R(["make", "tests"])
         R(["sudo", "make", "install"])
 
 
