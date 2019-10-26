@@ -55,7 +55,7 @@ setup(
             depends=['src/pyexiv2/_libexiv2_if.pxd',
                      'src/pyexiv2/_libexiv2_if.hpp'],
             libraries=['exiv2'],
-            extra_compile_args=['-g']
+            extra_compile_args=['-g', '-std=c++11']
         )
     ]),
 
