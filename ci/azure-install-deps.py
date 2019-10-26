@@ -75,7 +75,7 @@ def install_deps_ubuntu():
 
     R(["sudo", "apt-get", "update"])
     R(["sudo", "apt-get", "install", "-y",
-       "cmake", "zlib1g-dev", "libexpat1-dev"])
+       "cmake", "zlib1g-dev", "libexpat1-dev", "libxml2-utils"])
 
     R([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
     R(["pip", "install", "--upgrade",
