@@ -24,7 +24,7 @@
 #
 # ******************************************************************************
 
-"""Build script for py(3)exiv2 in the Azure Pipelines CI environment."""
+"""Build script for cyexiv2 in the Azure Pipelines CI environment."""
 
 
 import os
@@ -79,15 +79,8 @@ def assert_in_srcdir():
 
 
 def build_generic():
-
-    python = sys.executable
-    pythonpath_for_test = augment_pythonpath(os.path.join(os.getcwd(), "src"))
-
-    R([python, "setup.py", "build_ext", "--inplace"])
-
-    sys.stdout.write("##[section]Running tests\n")
-    sys.stdout.flush()
-    R(["pytest"], env=pythonpath_for_test)
+    R([sys.executable, "setup.py", "build_ext", "--inplace"])
+    R(["pytest"], env=augment_pythonpath(os.path.join(os.getcwd(), "src")))
 
 
 def main():

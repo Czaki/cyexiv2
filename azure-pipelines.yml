@@ -31,5 +31,8 @@ steps:
 - script: 'exec ./ci/azure-install-deps.py'
   displayName: 'Install dependencies'
 
+- script: 'exec ./ci/azure-build-libexiv2.py'
+  displayName: 'Build libexiv2'
+
 - script: 'exec ./ci/azure-build-cyexiv2.py'
   displayName: 'Build and test cyexiv2 package'

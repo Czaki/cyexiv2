@@ -73,10 +73,11 @@ def install_deps_ubuntu():
     # Tell apt-get not to try to prompt for interactive configuration.
     os.environ["DEBIAN_FRONTEND"] = "noninteractive"
 
-    sys.stdout.flush()
     R(["sudo", "apt-get", "update"])
-    R(["sudo", "apt-get", "install", "-y", "libexiv2-dev"])
-    R([python, "-m", "pip", "install", "--upgrade", "pip"])
+    R(["sudo", "apt-get", "install", "-y",
+       "cmake", "zlib1g-dev", "libexpat1-dev"])
+
+    R([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
     R(["pip", "install", "--upgrade",
        "setuptools", "wheel", "pytest", "pytest-azurepipelines"])
 
