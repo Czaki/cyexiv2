@@ -92,6 +92,10 @@ def build_generic():
     # subprocess.run() was added in Python 3.5, we still support 3.4
     R = subprocess.check_call
 
+    # Tell apt-get not to try to prompt for interactive configuration.
+    # This setting is harmless for all other commands we run.
+    os.environ["DEBIAN_FRONTEND"] = "noninteractive"
+
     python = sys.executable
     pythonpath_for_test = augment_pythonpath(os.path.join(os.getcwd(), "src"))
 
@@ -103,10 +107,15 @@ def build_generic():
     sys.stdout.write("--- Installing dependencies ---\n")
     sys.stdout.flush()
     R(["sudo", "apt-get", "update"])
-    R(["sudo", "apt-get", "install", "-y", "cython3", "libexiv2-dev"])
+    R(["sudo", "apt-get", "install", "-y", "libexiv2-dev"])
     R([python, "-m", "pip", "install", "--upgrade", "pip"])
     R(["pip", "install", "--upgrade",
        "setuptools", "wheel", "pytest", "pytest-azurepipelines"])
+
+    # per advice at https://pypi.org/project/Cython/ : for a one-off CI build,
+    # compiling cython's accelerator modules from source will be slower
+    # overall than falling back to the pure-python implementation
+    R(["pip", "install", "Cython", "--install-option=--no-cython-compile"]
 
     sys.stdout.write("--- Building extension module ---\n")
     sys.stdout.flush()
