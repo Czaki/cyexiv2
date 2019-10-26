@@ -24,8 +24,8 @@
 #
 # ******************************************************************************
 
-"""Build script for py(3)exiv2 in the Azure Pipelines CI environment."""
-
+"""Install system-wide dependencies for building cyexiv2 in an Azure Pipelines
+   task agent."""
 
 import os
 import shlex
@@ -62,15 +62,6 @@ def R(cmd, **kwargs):
     return subprocess.check_call(cmd, **kwargs)
 
 
-def augment_pythonpath(dir):
-    env = os.environ.copy()
-    if "PYTHONPATH" in env:
-        env["PYTHONPATH"] = dir + os.pathsep + env["PYTHONPATH"]
-    else:
-        env["PYTHONPATH"] = dir
-    return env
-
-
 def assert_in_srcdir():
     if os.path.isfile("setup.py") and os.path.isfile(os.path.join(
             "src", "pyexiv2", "__init__.py")):
@@ -78,22 +69,27 @@ def assert_in_srcdir():
     raise RuntimeError("Cannot find pyexiv2 source code")
 
 
-def build_generic():
+def install_deps_ubuntu():
+    # Tell apt-get not to try to prompt for interactive configuration.
+    os.environ["DEBIAN_FRONTEND"] = "noninteractive"
 
-    python = sys.executable
-    pythonpath_for_test = augment_pythonpath(os.path.join(os.getcwd(), "src"))
-
-    R([python, "setup.py", "build_ext", "--inplace"])
-
-    sys.stdout.write("##[section]Running tests\n")
     sys.stdout.flush()
-    R(["pytest"], env=pythonpath_for_test)
+    R(["sudo", "apt-get", "update"])
+    R(["sudo", "apt-get", "install", "-y", "libexiv2-dev"])
+    R([python, "-m", "pip", "install", "--upgrade", "pip"])
+    R(["pip", "install", "--upgrade",
+       "setuptools", "wheel", "pytest", "pytest-azurepipelines"])
+
+    # per advice at https://pypi.org/project/Cython/ : for a one-off CI build,
+    # compiling cython's accelerator modules from source will be slower
+    # overall than falling back to the pure-python implementation
+    R(["pip", "install", "Cython", "--install-option=--no-cython-compile"])
 
 
 def main():
     try:
         assert_in_srcdir()
-        build_generic()
+        install_deps_ubuntu()
         sys.exit(0)
 
     except subprocess.CalledProcessError as e:

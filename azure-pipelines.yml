@@ -28,5 +28,8 @@ steps:
 - script: 'exec ./ci/azure-report-env.py'
   displayName: 'Build environment details'
 
+- script: 'exec ./ci/azure-install-deps.py'
+  displayName: 'Install dependencies'
+
 - script: 'exec ./ci/azure-build-cyexiv2.py'
   displayName: 'Build and test cyexiv2 package'

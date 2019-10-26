@@ -90,9 +90,9 @@ def classify_direntry(name):
 
     name = shlex.quote(name)
     if colors:
-        return f"\033[{colors}m{name}\033[0m{suffix}"
+        return "\033[" + colors + "m" + name + "\033[0m" + suffix
     else:
-        return f"{name}{suffix}"
+        return name + suffix
 
 
 def log_cwd():
