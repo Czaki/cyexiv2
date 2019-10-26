@@ -62,13 +62,13 @@ def R(cmd, **kwargs):
     return subprocess.check_call(cmd, **kwargs)
 
 
-def augment_pythonpath(dir):
-    env = os.environ.copy()
-    if "PYTHONPATH" in env:
-        env["PYTHONPATH"] = dir + os.pathsep + env["PYTHONPATH"]
+def augment_path(var, dir):
+    if var in os.environ:
+        os.environ[var] = dir + os.pathsep + os.environ[var]
     else:
-        env["PYTHONPATH"] = dir
-    return env
+        os.environ[var] = dir
+    sys.stdout.write("##[command]export {}={}\n".format(
+        var, shlex.quote(os.environ[var])))
 
 
 def assert_in_srcdir():
@@ -80,7 +80,11 @@ def assert_in_srcdir():
 
 def build_generic():
     R([sys.executable, "setup.py", "build_ext", "--inplace"])
-    R(["pytest"], env=augment_pythonpath(os.path.join(os.getcwd(), "src")))
+
+    augment_path("PYTHONPATH", os.path.join(os.getcwd(), "src"))
+    augment_path("LD_LIBRARY_PATH", "/usr/local/lib")
+
+    R(["pytest"])
 
 
 def main():
