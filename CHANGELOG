@@ -1,6 +1,7 @@
 CYEXIV2
 
 Change in 0.8.0  [unreleased]
+ * Exiv2 library version 0.27 or greater is required.
  * No longer uses Boost.Python; instead uses Cython.
  * The type of exception thrown under some error conditions has changed.
  * Some accessors have changed from producing Unicode strings to producing
