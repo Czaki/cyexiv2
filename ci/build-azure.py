@@ -115,7 +115,7 @@ def build_generic():
     # per advice at https://pypi.org/project/Cython/ : for a one-off CI build,
     # compiling cython's accelerator modules from source will be slower
     # overall than falling back to the pure-python implementation
-    R(["pip", "install", "Cython", "--install-option=--no-cython-compile"]
+    R(["pip", "install", "Cython", "--install-option=--no-cython-compile"])
 
     sys.stdout.write("--- Building extension module ---\n")
     sys.stdout.flush()
