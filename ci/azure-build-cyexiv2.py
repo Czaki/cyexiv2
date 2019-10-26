@@ -29,41 +29,36 @@
 
 import glob
 import os
-import platform
 import shlex
+import signal
 import subprocess
 import sys
 
 
-def log_platform():
-    plat = platform.platform(aliased=True)
-    cc = platform.python_compiler()
-    pyimpl = platform.python_implementation()
-    pyvers = platform.python_version()
+def format_failed_process(err):
+    cmd = ' '.join(shlex.quote(word) for word in err.cmd)
+    if err.returncode == 0:
+        status = "exited successfully?!"
+    elif err.returncode > 0:
+        status = "exited with code {}".format(err.returncode)
+    else:
+        try:
+            status = "killed by {}".format(signal.Signals(-err.returncode)
+                                            .name)
+        except (ValueError, AttributeError):
+            status = "killed by signal {}".format(-err.returncode)
 
-    sys.stdout.write("Interpreter: {} {}\n".format(pyimpl, pyvers))
-    if cc:
-        sys.stdout.write("Compiled by: {}\n".format(cc))
-    sys.stdout.write("Running on:  {}\n".format(plat))
+    return "Command " + cmd + ": " + status
 
-    # On Linux, we want to print the C library version number in addition
-    # to the distribution identifiers.
-    if platform.system() == "Linux":
-        lver = platform.libc_ver()
-        if lver[0]:
-            sys.stdout.write("C library:   {} {}\n".format(*lver))
+def R(cmd, **kwargs):
+    """Like subprocess.run, but logs the command it's about to run.
+       The very short name is for readability below."""
 
-    sys.stdout.write("\n")
-    sys.stdout.flush()
+    sys.stdout.write("##[command]" + " ".join(shlex.quote(word)
+                                              for word in cmd) + "\n")
 
-
-def log_environ():
-    sys.stdout.write("Environment variable dump:\n")
-    for k, v in sorted(os.environ.items()):
-        sys.stdout.write("  {}={}\n".format(shlex.quote(k), shlex.quote(v)))
-    sys.stdout.write("\n")
-    sys.stdout.write("Working directory: {}\n".format(os.getcwd()))
-    sys.stdout.flush()
+    # subprocess.run() was added in Python 3.5, we still support 3.4
+    return subprocess.check_call(cmd, **kwargs)
 
 
 def augment_pythonpath(dir):
@@ -79,18 +74,10 @@ def assert_in_srcdir():
     if os.path.isfile("setup.py") and os.path.isfile(os.path.join(
             "src", "pyexiv2", "__init__.py")):
         return
-
-    sys.stdout.write("ERROR: Cannot find pyexiv2 source code\n\n"
-                     "Working directory contents:\n")
-    for f in sorted(os.listdir(".")):
-        sys.stdout.write("  {}\n".format(shlex.quote(f)))
-
     raise RuntimeError("Cannot find pyexiv2 source code")
 
 
 def build_generic():
-    # subprocess.run() was added in Python 3.5, we still support 3.4
-    R = subprocess.check_call
 
     # Tell apt-get not to try to prompt for interactive configuration.
     # This setting is harmless for all other commands we run.
@@ -100,11 +87,8 @@ def build_generic():
     pythonpath_for_test = augment_pythonpath(os.path.join(os.getcwd(), "src"))
 
     test_cmd = ["pytest"]
-    test_cmd.extend(sorted(
-        p for p in glob.glob(os.path.join("test", "*.py"))
-        if not p.endswith("__init__.py")))
 
-    sys.stdout.write("--- Installing dependencies ---\n")
+    sys.stdout.write("##[section]Installing dependencies\n")
     sys.stdout.flush()
     R(["sudo", "apt-get", "update"])
     R(["sudo", "apt-get", "install", "-y", "libexiv2-dev"])
@@ -117,26 +101,28 @@ def build_generic():
     # overall than falling back to the pure-python implementation
     R(["pip", "install", "Cython", "--install-option=--no-cython-compile"])
 
-    sys.stdout.write("--- Building extension module ---\n")
+    sys.stdout.write("##[section]Building extension module\n")
     sys.stdout.flush()
     R([python, "setup.py", "build_ext", "--inplace"])
 
-    sys.stdout.write("--- Running tests ---\n")
+    sys.stdout.write("##[section]Running tests\n")
     sys.stdout.flush()
-    R(test_cmd, env=pythonpath_for_test)
+    R(["pytest"], env=pythonpath_for_test)
 
 
 def main():
-    sys.stdout.write("--- Build start ---\n")
-    log_platform()
-    log_environ()
     try:
         assert_in_srcdir()
         build_generic()
-        sys.stdout.write("--- Build complete ---\n")
+        sys.stdout.write("##[section]Build successful.\n")
         sys.exit(0)
-    except BaseException as e:  # yes, really
-        sys.stdout.write("--- Build failed: {} ---\n".format(e))
+
+    except subprocess.CalledProcessError as e:
+        sys.stdout.write("##vso[task.logissue type=error]{}\n".format(
+            format_failed_process(e)))
+
+    except Exception as e:
+        sys.stdout.write("##vso[task.logissue type=error]{}\n".format(e))
         sys.exit(1)
 
 

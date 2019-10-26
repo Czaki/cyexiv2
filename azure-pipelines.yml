@@ -25,6 +25,8 @@ steps:
     versionSpec: '$(python.version)'
   displayName: 'Use Python $(python.version)'
 
-- script: |
-    exec ./ci/build-azure.py
-  displayName: 'Build and test'
+- script: 'exec ./ci/azure-report-env.py'
+  displayName: 'Build environment details'
+
+- script: 'exec ./ci/azure-build-cyexiv2.py'
+  displayName: 'Build and test cyexiv2 package'
