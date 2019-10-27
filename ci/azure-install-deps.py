@@ -42,8 +42,8 @@ def format_failed_process(err):
         status = "exited with code {}".format(err.returncode)
     else:
         try:
-            status = "killed by {}".format(signal.Signals(-err.returncode)
-                                            .name)
+            status = "killed by {}".format(
+                signal.Signals(-err.returncode).name)
         except (ValueError, AttributeError):
             status = "killed by signal {}".format(-err.returncode)
 

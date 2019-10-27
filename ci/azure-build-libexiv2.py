@@ -35,12 +35,14 @@ import ssl
 import subprocess
 import sys
 import tempfile
-from urllib.request import urlopen, HTTPError
+from urllib.request import urlopen
 
 EXIV2_SRC_BASE   = 'exiv2-0.27.2-Source.tar.gz'
 EXIV2_SRC_DIR    = 'exiv2-0.27.2-Source'
 EXIV2_SRC_URL    = 'https://www.exiv2.org/builds/exiv2-0.27.2-Source.tar.gz'
-EXIV2_SRC_SHA256 = '2652f56b912711327baff6dc0c90960818211cf7ab79bb5e1eb59320b78d153f'
+EXIV2_SRC_SHA256 = \
+    '2652f56b912711327baff6dc0c90960818211cf7ab79bb5e1eb59320b78d153f'
+
 
 def format_failed_process(err):
     cmd = ' '.join(shlex.quote(word) for word in err.cmd)
@@ -50,8 +52,8 @@ def format_failed_process(err):
         status = "exited with code {}".format(err.returncode)
     else:
         try:
-            status = "killed by {}".format(signal.Signals(-err.returncode)
-                                            .name)
+            status = "killed by {}".format(
+                signal.Signals(-err.returncode).name)
         except (ValueError, AttributeError):
             status = "killed by signal {}".format(-err.returncode)
 

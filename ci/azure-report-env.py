@@ -64,7 +64,7 @@ def classify_direntry(name):
             dest = classify_direntry(dest)
             colors = "01;36"
             suffix = " => " + dest
-        except OSError: # broken symlink
+        except OSError:  # broken symlink
             colors = "40;31;01"
             suffix = " => " + shlex.quote(dest)
 

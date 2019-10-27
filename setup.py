@@ -29,11 +29,13 @@ import os
 from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
 
+
 def read_long_description():
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                            "DESCRIPTION.rst"),
               encoding="utf-8") as f:
         return f.read()
+
 
 setup(
     name='cyexiv2',
