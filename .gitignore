@@ -27,6 +27,12 @@ pip-log.txt
 /var/
 /wheels/
 
+# Pytest generated files
+/.coverage
+/coverage.xml
+/htmlcov/
+/test-results.xml
+
 # Cython generated files.  Only _libexiv2.cpp is used; the other two
 # may get generated if cython is run directly.
 /src/pyexiv2/_libexiv2.cpp

@@ -44,9 +44,9 @@ steps:
     scriptPath: ./ci/azure-build-cyexiv2.py
   displayName: 'Build cyexiv2'
 
-- script: |
-    exec pytest tests --doctest-modules --junitxml=junit/test-results.xml \
-                      --cov=com --cov-report=xml --cov-report=html
+- task: PythonScript@0
+  inputs:
+    scriptPath: ./ci/azure-test-cyexiv2.py
   displayName: 'Test cyexiv2'
 
 - task: PublishTestResults@2
