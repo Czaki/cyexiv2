@@ -10,12 +10,6 @@ pool:
   vmImage: 'ubuntu-latest'
 strategy:
   matrix:
-    Python34:
-      python.version: '3.4'
-    Python35:
-      python.version: '3.5'
-    Python36:
-      python.version: '3.6'
     Python37:
       python.version: '3.7'
 
@@ -25,14 +19,44 @@ steps:
     versionSpec: '$(python.version)'
   displayName: 'Use Python $(python.version)'
 
-- script: 'exec ./ci/azure-report-env.py'
+- task: PythonScript@0
+  inputs:
+    scriptPath: ./ci/azure-report-env.py
   displayName: 'Build environment details'
 
-- script: 'exec ./ci/azure-install-deps.py'
+- task: PythonScript@0
+  inputs:
+    scriptPath: ./ci/azure-install-deps.py
   displayName: 'Install dependencies'
 
-- script: 'exec ./ci/azure-build-libexiv2.py'
+# doc/ contains stuff that is currently exempt from linting
+- script: |
+    exec flake8 $(git ls-files '*.py' | grep -v '^doc/')
+  displayName: 'Lint cyexiv2'
+
+- task: PythonScript@0
+  inputs:
+    scriptPath: ./ci/azure-build-libexiv2.py
   displayName: 'Build libexiv2'
 
-- script: 'exec ./ci/azure-build-cyexiv2.py'
-  displayName: 'Build and test cyexiv2 package'
+- task: PythonScript@0
+  inputs:
+    scriptPath: ./ci/azure-build-cyexiv2.py
+  displayName: 'Build cyexiv2'
+
+- script: |
+    exec pytest tests --doctest-modules --junitxml=junit/test-results.xml \
+                      --cov=com --cov-report=xml --cov-report=html
+  displayName: 'Test cyexiv2'
+
+- task: PublishTestResults@2
+  condition: succeededOrFailed()
+  inputs:
+    testResultsFiles: '**/test-*.xml'
+    testRunTitle: 'Test results for Python $(python.version)'
+
+- task: PublishCodeCoverageResults@1
+  inputs:
+    codeCoverageTool: Cobertura
+    summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/coverage.xml'
+    reportDirectory: '$(System.DefaultWorkingDirectory)/**/htmlcov'

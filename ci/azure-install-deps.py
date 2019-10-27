@@ -79,7 +79,9 @@ def install_deps_ubuntu():
 
     R([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
     R(["pip", "install", "--upgrade",
-       "setuptools", "wheel", "pytest", "pytest-azurepipelines"])
+       "setuptools", "wheel",
+       "pytest", "pytest-azurepipelines", "pytest-cov",
+       "flake8"])
 
     # per advice at https://pypi.org/project/Cython/ : for a one-off CI build,
     # compiling cython's accelerator modules from source will be slower
