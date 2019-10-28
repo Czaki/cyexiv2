@@ -53,3 +53,17 @@ steps:
     scriptPath: ./ci/azure-build.py
     arguments: ['test-cyexiv2-inplace']
   displayName: 'Test cyexiv2'
+
+- task: PublishTestResults@2
+  condition: succeededOrFailed()
+  inputs:
+    testResultsFiles: '**/test-*.xml'
+    testRunTitle: 'Test results for Python $(python.version)'
+  displayName: 'Upload test results'
+
+- task: PublishCodeCoverageResults@1
+  condition: succeededOrFailed()
+  inputs:
+    codeCoverageTool: Cobertura
+    summaryFileLocation: '**/coverage.xml'
+  displayName: 'Upload test coverage'
