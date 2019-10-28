@@ -364,7 +364,7 @@ def test_cyexiv2_inplace(args):
     augment_path("PYTHONPATH", os.path.join(os.getcwd(), "src"))
     augment_path("LD_LIBRARY_PATH", "/usr/local/lib")
     run(["pytest", "--doctest-modules", "--junitxml=test-results.xml",
-         "--cov=pyexiv2", "--cov-report=xml", "--cov-report=html"])
+         "--cov=pyexiv2", "--cov-report=xml"])
 
 
 def main():
