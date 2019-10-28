@@ -21,12 +21,14 @@ steps:
 
 - task: PythonScript@0
   inputs:
-    scriptPath: ./ci/azure-report-env.py
+    scriptPath: ./ci/azure-build.py
+    arguments: ['report-env']
   displayName: 'Build environment details'
 
 - task: PythonScript@0
   inputs:
-    scriptPath: ./ci/azure-install-deps.py
+    scriptPath: ./ci/azure-build.py
+    arguments: ['install-deps-ubuntu']
   displayName: 'Install dependencies'
 
 # doc/ contains stuff that is currently exempt from linting
@@ -36,15 +38,18 @@ steps:
 
 - task: PythonScript@0
   inputs:
-    scriptPath: ./ci/azure-build-libexiv2.py
+    scriptPath: ./ci/azure-build.py
+    arguments: ['build-libexiv2-ubuntu']
   displayName: 'Build libexiv2'
 
 - task: PythonScript@0
   inputs:
-    scriptPath: ./ci/azure-build-cyexiv2.py
+    scriptPath: ./ci/azure-build.py
+    arguments: ['build-cyexiv2-inplace']
   displayName: 'Build cyexiv2'
 
 - task: PythonScript@0
   inputs:
-    scriptPath: ./ci/azure-test-cyexiv2.py
+    scriptPath: ./ci/azure-build.py
+    arguments: ['test-cyexiv2-inplace']
   displayName: 'Test cyexiv2'
