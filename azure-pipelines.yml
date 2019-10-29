@@ -45,19 +45,13 @@ steps:
 - task: PythonScript@0
   inputs:
     scriptPath: ./ci/azure-build.py
-    arguments: build-cyexiv2-inplace
-  displayName: 'Build cyexiv2'
-
-- task: PythonScript@0
-  inputs:
-    scriptPath: ./ci/azure-build.py
-    arguments: test-cyexiv2-inplace
-  displayName: 'Test cyexiv2'
+    arguments: build-and-test-sdist
+  displayName: 'Build and test cyexiv2 (sdist)'
 
 - task: PublishTestResults@2
   condition: succeededOrFailed()
   inputs:
-    testResultsFiles: '**/test-*.xml'
+    testResultsFiles: '**/test-results.xml'
     testRunTitle: 'Test results for Python $(python.version)'
   displayName: 'Upload test results'
 

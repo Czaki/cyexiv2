@@ -29,25 +29,75 @@
 import argparse
 import contextlib
 import hashlib
+import itertools
+import locale
 import os
 import platform
 import shlex
+import shutil
 import signal
 import ssl
 import stat
 import subprocess
 import sys
 import tempfile
+from xml.dom.minidom import parse as parse_xml
+from xml.dom import Node as DOMNode, NotFoundErr as DOMNotFoundError
 from urllib.request import urlopen
 
 
 EXIV2_SRC_BASE   = 'exiv2-0.27.2-Source.tar.gz'
 EXIV2_SRC_DIR    = 'exiv2-0.27.2-Source'
+EXIV2_SRC_TS     = 1564381986  # 2019-07-29 02:33:06 +0000
 EXIV2_SRC_URL    = 'https://www.exiv2.org/builds/exiv2-0.27.2-Source.tar.gz'
 EXIV2_SRC_SHA256 = \
     '2652f56b912711327baff6dc0c90960818211cf7ab79bb5e1eb59320b78d153f'
 
 CAN_FCHDIR = os.supports_fd
+
+# This list partially cribbed from Autoconf's shell environment
+# normalization logic.
+BAD_ENVIRONMENT_VARS = frozenset((
+    "BASH_ENV",
+    "CDPATH",
+    "CLICOLOR_FORCE",
+    "ENV",
+    "GREP_OPTIONS",
+    "IFS",
+    "LANG",
+    "LANGUAGE",
+    "LS_COLORS",
+    "PS1",
+    "PS2",
+    "PS3",
+    "PS4",
+))
+
+# Directories likely to contain a version control system's metadata.
+# This list was cribbed from Emacs' vc/*.el and is not remotely
+# exhaustive, but covers everything that's likely to be used and a few
+# more.  To avoid a number of Windows-related headaches, the names
+# have all been lowercased and leading '.' and '_' have been removed.
+
+VERSION_CONTROL_DIRS = frozenset((
+    "bzr",
+    "cvs",
+    "darcs",
+    "git",
+    "hg",
+    "mtn",
+    "rcs",
+    "sccs",
+    "svn",
+))
+
+
+def is_vcs_dir(d):
+    if not d:
+        return False
+    if d[0] in ('_', '.'):
+        d = d[1:]
+    return d.lower() in VERSION_CONTROL_DIRS
 
 
 # A subset of the behavior of GNU ls -F --color=always.
@@ -159,9 +209,15 @@ def log_command(*cmd):
     sys.stdout.flush()
 
 
+def log_warning(msg):
+    for line in msg.splitlines():
+        sys.stdout.write("##[warning]" + msg.rstrip() + "\n")
+    sys.stdout.flush()
+
+
 def log_error(msg):
     for line in msg.splitlines():
-        sys.stdout.write("##[error]" + msg.strip() + "\n")
+        sys.stdout.write("##[error]" + msg.rstrip() + "\n")
     sys.stdout.flush()
 
 
@@ -195,11 +251,81 @@ def run(cmd, **kwargs):
     return subprocess.check_call(cmd, **kwargs)
 
 
+def rename(src, dst):
+    """Like os.rename, but logs the action."""
+    log_command("mv", src, dst)
+    os.rename(src, dst)
+
+
+def copyfile(src, dst):
+    """Like shutil.copyfile, but logs the action and does not follow
+       symlinks."""
+    log_command("cp", src, dst)
+    shutil.copyfile(src, dst, follow_symlinks=False)
+
+
+def rename_aside(dir, prefix, suffix):
+    """Rename 'aside' every file in DIR whose name begins with PREFIX and
+       ends with SUFFIX.  'Aside' means: if the name of a file is
+       ${prefix}${middle}${suffix}, then it is renamed to
+       ${prefix}${middle}-1${suffix}.  Renames are done in an
+       appropriate order, so that no file gets clobbered.
+    """
+    needs_rename = []
+    plen = len(prefix)
+    slen = len(suffix)
+    for name in os.listdir(dir):
+        if name.startswith(prefix) and name.endswith(suffix):
+            needs_rename.append(name[plen:-slen])
+
+    needs_rename.sort(key=lambda s: (-len(s), s))
+    for middle in needs_rename:
+        src = os.path.join(dir, prefix + middle + suffix)
+        dst = os.path.join(dir, prefix + middle + "-1" + suffix)
+        rename(src, dst)
+
+
+def recursive_reset_timestamps(topdir, timestamp):
+
+    """Recursively reset the atime and mtime of everything within TOPDIR
+       to TIMESTAMP, except that version control directories are
+       skipped.  See above for the list of recognized version control
+       directories.  TIMESTAMP is expected to be a whole number of
+       seconds.
+    """
+    times = (timestamp, timestamp)
+    for subdir, dirs, files in os.walk(topdir):
+        vcs_dirs = [d for d in dirs if is_vcs_dir(d)]
+        for d in vcs_dirs:
+            dirs.remove(d)
+
+        try:
+            os.utime(subdir, times=times, follow_symlinks=False)
+        except OSError as e:
+            log_warning("resetting timestamp on {}: {}"
+                        .format(subdir, e))
+
+        for f in files:
+            fpath = os.path.join(subdir, f)
+            try:
+                os.utime(fpath, times=times, follow_symlinks=False)
+            except OSError as e:
+                log_warning("resetting timestamp on {}: {}"
+                            .format(subdir, e))
+
+
 def chdir(dest):
     """Like os.chdir, but logs the action."""
 
     log_command("cd", dest)
     os.chdir(dest)
+
+
+def makedirs(dest):
+    """Like os.makedirs, but logs the action.  Always uses exist_ok=True."""
+
+    log_command("mkdir", "-p", dest)
+    os.makedirs(dest, exist_ok=True)
 
 
 @contextlib.contextmanager
@@ -229,19 +355,11 @@ def working_directory(dest):
         try:
             os.chdir(prev_wd_fd)
         except OSError as e:
-            sys.stdout.write("##[warning]fchdir: {}\n".format(e))
-            sys.stdout.flush()
+            log_warning("fchdir: " + str(e))
             os.chdir(prev_wd_path)
             CAN_FCHDIR = False
 
         os.close(prev_wd_fd)
-
-
-def makedirs(dest):
-    """Like os.makedirs, but logs the action.  Always uses exist_ok=True."""
-
-    log_command("mkdir", "-p", dest)
-    os.makedirs(dest, exist_ok=True)
 
 
 def augment_path(var, dir):
@@ -253,11 +371,98 @@ def augment_path(var, dir):
     log_command("export", "{}={}".format(var, os.environ[var]))
 
 
+@contextlib.contextmanager
+def restore_environ():
+    """Restore all environment variables to their previous values upon
+       exiting the context."""
+    save_env = os.environ.copy()
+    yield
+    os.environ.clear()
+    os.environ.update(save_env)
+
+
 def assert_in_srcdir():
     if os.path.isfile("setup.py") and os.path.isfile(os.path.join(
             "src", "pyexiv2", "__init__.py")):
         return
     raise RuntimeError("Cannot find pyexiv2 source code")
+
+
+def normalize_cov_xml(xmlfile, dest=None):
+    """Read XMLFILE, remove build-environment nondeterminism from the
+       XML structure, and write it back out to DEST (or to XMLFILE if
+       DEST is not specified)."""
+    with parse_xml(xmlfile) as doc:
+        root = doc.documentElement
+
+        epoch = os.environ.get('SOURCE_DATE_EPOCH')
+        cwd = os.getcwd()
+
+        if epoch is not None:
+            root.setAttribute('timestamp', epoch)
+        else:
+            try:
+                root.removeAttribute('timestamp')
+            except DOMNotFoundError:
+                pass
+
+        for source in doc.getElementsByTagName('source'):
+            source.normalize()
+            if (
+                    source.firstChild is not None
+                    and source.firstChild.nodeType == DOMNode.TEXT_NODE
+                    and source.firstChild.data.strip() == cwd
+            ):
+                source.replaceChild(doc.createTextNode("."),
+                                    source.firstChild)
+
+        newxml = doc.documentElement.toprettyxml(indent=" ")
+
+    if dest is None:
+        dest = xmlfile
+    if isinstance(dest, str):
+        with open(dest, "wt", encoding="utf-8") as w:
+            w.write(newxml)
+    else:
+        dest.write(newxml)
+
+
+def strip_junitxml_time_attrs(xmlfile, dest=None):
+    """Read XMLFILE, remove all time= attributes from <testsuite> and
+       <testcase> elements, and write it back out to DEST (or to XMLFILE
+       if DEST is not specified)."""
+    with parse_xml(xmlfile) as doc:
+        for el in itertools.chain(doc.getElementsByTagName("testsuite"),
+                                  doc.getElementsByTagName("testcase")):
+            try:
+                el.removeAttribute("time")
+            except DOMNotFoundError:
+                pass
+
+        newxml = doc.documentElement.toprettyxml(indent=" ")
+
+    if dest is None:
+        dest = xmlfile
+    if isinstance(dest, str):
+        with open(dest, "rt", encoding="utf-8") as w:
+            w.write(newxml)
+    else:
+        dest.write(newxml)
+
+
+def compare_test_results(r1, r2):
+    """Compare test result files R1 and R2 (both JUnitXML).  They should
+       be identical, except that time= attributes on <testsuite> and
+       <testcase> elements are ignored."""
+
+    def ntf():
+        return tempfile.NamedTemporaryFile(
+            mode="w+t", encoding="utf-8", suffix=".xml")
+
+    with ntf() as t1, ntf() as t2:
+        strip_junitxml_time_attrs(r1, t1)
+        strip_junitxml_time_attrs(r2, t2)
+        run(["diff", "-u", t1.name, t2.name])
 
 
 def download_and_check_hash(url, sha256, dest):
@@ -312,6 +517,7 @@ def download_and_unpack_libexiv2():
         download_and_check_hash(EXIV2_SRC_URL, EXIV2_SRC_SHA256, fp)
 
     run(["tar", "axf", EXIV2_SRC_BASE])
+    recursive_reset_timestamps(EXIV2_SRC_BASE, EXIV2_SRC_TS)
 
 
 def report_env(args):
@@ -361,10 +567,146 @@ def build_cyexiv2_inplace(args):
 def test_cyexiv2_inplace(args):
     assert_in_srcdir()
 
-    augment_path("PYTHONPATH", os.path.join(os.getcwd(), "src"))
-    augment_path("LD_LIBRARY_PATH", "/usr/local/lib")
-    run(["pytest", "--doctest-modules", "--junitxml=test-results.xml",
-         "--cov=pyexiv2", "--cov-report=xml"])
+    with restore_environ():
+        augment_path("PYTHONPATH", os.path.join(os.getcwd(), "src"))
+        augment_path("LD_LIBRARY_PATH", "/usr/local/lib")
+        run(["pytest", "--doctest-modules", "--junitxml=test-results.xml",
+             "--cov=pyexiv2", "--cov-report=xml"])
+
+        normalize_cov_xml("coverage.xml")
+
+
+def build_and_test_sdist(args):
+
+    # --formats tar because we can't control the gzip invocation used by
+    # --formats gztar, and by default it will record a creation timestamp,
+    # rendering the tarballs not directly comparable.
+    sdist_cmd = [
+        sys.executable, "setup.py", "sdist",
+        "-u", "root", "-g", "root", "--formats", "tar"
+    ]
+    bdist_wheel_cmd = [
+        sys.executable, "setup.py", "bdist_wheel"
+    ]
+
+    assert_in_srcdir()
+
+    # Create an sdist tarball from a completely clean checkout.
+    run(sdist_cmd)
+
+    # Move that tarball out of the way, create a wheel, and then
+    # create an sdist tarball again.
+    rename_aside("dist", "cyexiv2", ".tar")
+    run(bdist_wheel_cmd)
+    run(sdist_cmd)
+
+    # The two tarballs should be byte-for-byte identical.
+    tarballs = sorted(os.path.join("dist", fname)
+                      for fname in os.listdir("dist")
+                      if fname.startswith("cyexiv2")
+                      and fname.endswith(".tar"))
+    if len(tarballs) != 2:
+        log_error("expected 2 tarballs, got: {}".format(tarballs))
+        raise RuntimeError("wrong number of tarballs")
+
+    run(["cmp"] + tarballs)
+
+    # Run an inplace build and test, having already created a wheel.
+    build_cyexiv2_inplace(args)
+    test_cyexiv2_inplace(args)
+
+    # Unpack one of the sdists into a scratch directory.
+    # Run an inplace build and test on that sdist,
+    # then afterward build a wheel and another sdist from it.
+    # Copy the test results, the wheel, and the sdist back.
+    orig_wd = os.getcwd()
+    orig_distdir = os.path.join(orig_wd, "dist")
+    sdist_abs = os.path.join(orig_wd, tarballs[0])
+
+    with tempfile.TemporaryDirectory() as td, working_directory(td):
+        run(["tar", "xf", sdist_abs])
+        chdir(os.listdir()[0])
+        build_cyexiv2_inplace(args)
+        test_cyexiv2_inplace(args)
+        run(bdist_wheel_cmd)
+        run(sdist_cmd)
+
+        copyfile("test-results.xml",
+                 os.path.join(orig_wd, "test-results-sdist.xml"))
+        copyfile("coverage.xml",
+                 os.path.join(orig_wd, "coverage-sdist.xml"))
+        for f in os.listdir("dist"):
+            base, ext = os.path.splitext(f)
+            copyfile(os.path.join("dist", f),
+                     os.path.join(orig_distdir, base + "-sdist" + ext))
+
+    # Coverage results, the new wheel, and the new
+    # tarball should be byte-for-byte identical to those generated
+    # from within the checkout.  Test results should be XML-identical
+    # ignoring elapsed time for each test.
+    compare_test_results("test-results.xml", "test-results-sdist.xml")
+    run(["diff", "-u", "coverage.xml", "coverage-sdist.xml"])
+
+    wheels = sorted(os.path.join("dist", fname)
+                    for fname in os.listdir("dist")
+                    if fname.startswith("cyexiv2")
+                    and fname.endswith(".whl"))
+    if len(wheels) != 2:
+        log_error("expected 2 wheels, got: {}".format(wheels))
+        raise RuntimeError("wrong number of wheels")
+
+    run(["cmp"] + wheels)
+
+    new_tarball = [os.path.join("dist", fname)
+                   for fname in os.listdir("dist")
+                   if fname.startswith("cyexiv2")
+                   and fname.endswith("-sdist.tar")][0]
+    run(["cmp", tarballs[0], new_tarball])
+
+
+def normalize_env():
+    # Clear all of the BAD_ENVIRONMENT_VARS and all LC_* variables,
+    to_unset = []
+    for k in os.environ.keys():
+        if k in BAD_ENVIRONMENT_VARS or k.startswith("LC_"):
+            to_unset.append(k)
+
+    for k in to_unset:
+        log_command("unset", k)
+        del os.environ[k]
+
+    # Set LC_ALL=C.UTF-8 if supported, otherwise LC_ALL=C.
+    log_command("export", "LC_ALL=C.UTF-8")
+    os.environ["LC_ALL"] = "C.UTF-8"
+    try:
+        locale.setlocale(locale.LC_ALL, "")
+    except locale.Error as e:
+        log_warning("C.UTF-8 locale not available: {}".format(e))
+
+        log_command("export", "LC_ALL=C")
+        os.environ["LC_ALL"] = "C"
+        locale.setlocale(locale.LC_ALL, "")
+
+    # Set SOURCE_DATE_EPOCH if possible and not already set.
+    if "SOURCE_DATE_EPOCH" not in os.environ:
+        sourcedate = None
+        try:
+            gitcmd = ["git", "show", "-s", "--format=%ct", "HEAD"]
+            log_command(*gitcmd)
+            sourcedate = \
+                subprocess.check_output(gitcmd).decode("ascii").strip()
+        except subprocess.CalledProcessError:
+            pass
+
+        # FIXME: implement a way to do this from an sdist tarball.
+        # We could take the maximum of all the source timestamps
+        # but that seems both slow and fragile.
+
+        if sourcedate is not None:
+            log_command("export", "SOURCE_DATE_EPOCH="+sourcedate)
+            os.environ["SOURCE_DATE_EPOCH"] = sourcedate
+        else:
+            log_warning("no VCS info available and SOURCE_DATE_EPOCH not set")
 
 
 def main():
@@ -374,6 +716,7 @@ def main():
         "build-libexiv2-ubuntu": build_libexiv2_ubuntu,
         "build-cyexiv2-inplace": build_cyexiv2_inplace,
         "test-cyexiv2-inplace": test_cyexiv2_inplace,
+        "build-and-test-sdist": build_and_test_sdist
     }
 
     ap = argparse.ArgumentParser(description=__doc__)
@@ -381,6 +724,7 @@ def main():
     args = ap.parse_args()
 
     try:
+        normalize_env()
         ACTIONS[args.action](args)
         sys.exit(0)
 
