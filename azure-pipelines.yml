@@ -6,66 +6,83 @@
 trigger:
 - trunk
 
-pool:
-  vmImage: 'ubuntu-latest'
-strategy:
-  matrix:
-    Python37:
-      python.version: '3.7'
+jobs:
+- job: 'Build sdist'
+  pool: {vmImage: 'ubuntu-latest'}
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.7'
+    displayName: 'Use Python 3.7'
 
-steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '$(python.version)'
-  displayName: 'Use Python $(python.version)'
+  - task: PythonScript@0
+    inputs:
+      scriptPath: ./ci/azure-build.py
+      arguments: report-env
+    displayName: 'Build environment details'
 
-- task: PythonScript@0
-  inputs:
-    scriptPath: ./ci/azure-build.py
-    arguments: report-env
-  displayName: 'Build environment details'
+  - task: PythonScript@0
+    inputs:
+      scriptPath: ./ci/azure-build.py
+      arguments: install-deps-ubuntu
+    displayName: 'Install dependencies'
 
-- task: PythonScript@0
-  inputs:
-    scriptPath: ./ci/azure-build.py
-    arguments: install-deps-ubuntu
-  displayName: 'Install dependencies'
+  # doc/ contains stuff that is currently exempt from linting
+  - script: |
+      set -x
+      python3 setup.py check -s -m
+      flake8 $(git ls-files '*.py' | grep -v '^doc/')
+    displayName: 'Lint cyexiv2'
 
-# doc/ contains stuff that is currently exempt from linting
-- script: |
-    set -x
-    python3 setup.py check -s -m
-    flake8 $(git ls-files '*.py' | grep -v '^doc/')
-  displayName: 'Lint cyexiv2'
+  - task: PythonScript@0
+    inputs:
+      scriptPath: ./ci/azure-build.py
+      arguments: build-libexiv2-ubuntu
+    displayName: 'Build libexiv2'
 
-- task: PythonScript@0
-  inputs:
-    scriptPath: ./ci/azure-build.py
-    arguments: build-libexiv2-ubuntu
-  displayName: 'Build libexiv2'
+  - task: PythonScript@0
+    inputs:
+      scriptPath: ./ci/azure-build.py
+      arguments: build-and-test-sdist
+    displayName: 'Build and test cyexiv2 (sdist)'
 
-- task: PythonScript@0
-  inputs:
-    scriptPath: ./ci/azure-build.py
-    arguments: build-and-test-sdist
-  displayName: 'Build and test cyexiv2 (sdist)'
+  - task: PublishTestResults@2
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFiles: '**/test-results.xml'
+      testRunTitle: 'Test results for Python $(python.version)'
+    displayName: 'Upload test results'
 
-- task: PublishTestResults@2
-  condition: succeededOrFailed()
-  inputs:
-    testResultsFiles: '**/test-results.xml'
-    testRunTitle: 'Test results for Python $(python.version)'
-  displayName: 'Upload test results'
+  - task: PublishCodeCoverageResults@1
+    condition: succeededOrFailed()
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: '**/coverage.xml'
+    displayName: 'Upload test coverage'
 
-- task: PublishCodeCoverageResults@1
-  condition: succeededOrFailed()
-  inputs:
-    codeCoverageTool: Cobertura
-    summaryFileLocation: '**/coverage.xml'
-  displayName: 'Upload test coverage'
+  - task: PublishPipelineArtifact@1
+    displayName: 'Upload built artifacts'
+    inputs:
+      path: $(System.DefaultWorkingDirectory)/dist
+      artifact: sdist
 
-- task: PublishPipelineArtifact@1
-  displayName: 'Upload built artifacts'
-  inputs:
-    path: $(System.DefaultWorkingDirectory)/dist
-    artifact: sdist
+- job: 'Build Linux wheels'
+  pool: {vmImage: 'ubuntu-latest'}
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.7'
+    displayName: 'Use Python 3.7'
+
+  - task: PythonScript@0
+    inputs:
+      scriptPath: ./ci/azure-build.py
+      arguments: cibw-outer
+    displayName: 'Build and test Linux wheels'
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Upload built artifacts'
+    inputs:
+      path: $(System.DefaultWorkingDirectory)/wheelhouse
+      artifact: linux-wheels
+

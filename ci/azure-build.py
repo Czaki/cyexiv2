@@ -58,6 +58,7 @@ CAN_FCHDIR = os.supports_fd
 # This list partially cribbed from Autoconf's shell environment
 # normalization logic.
 BAD_ENVIRONMENT_VARS = frozenset((
+    "__PYVENV_LAUNCHER__",  # https://bugs.python.org/issue22490
     "BASH_ENV",
     "CDPATH",
     "CLICOLOR_FORCE",
@@ -73,12 +74,11 @@ BAD_ENVIRONMENT_VARS = frozenset((
     "PS4",
 ))
 
-# Directories likely to contain a version control system's metadata.
 # This list was cribbed from Emacs' vc/*.el and is not remotely
-# exhaustive, but covers everything that's likely to be used and a few
-# more.  To avoid a number of Windows-related headaches, the names
-# have all been lowercased and leading '.' and '_' have been removed.
-
+# exhaustive, but covers everything that's likely to be used and a
+# few more.  To avoid a number of Windows-related headaches, the
+# names have all been lowercased and leading '.' and '_' have been
+# removed.
 VERSION_CONTROL_DIRS = frozenset((
     "bzr",
     "cvs",
@@ -93,6 +93,9 @@ VERSION_CONTROL_DIRS = frozenset((
 
 
 def is_vcs_dir(d):
+    """True if D is a directory likely to contain a version control
+       system's metadata."""
+
     if not d:
         return False
     if d[0] in ('_', '.'):
@@ -100,8 +103,9 @@ def is_vcs_dir(d):
     return d.lower() in VERSION_CONTROL_DIRS
 
 
-# A subset of the behavior of GNU ls -F --color=always.
 def classify_direntry(name):
+    """Annotate a directory entry with type information, akin to what
+       GNU ls -F --color=always does."""
     st = os.lstat(name)
     mode = st.st_mode
     perms = stat.S_IMODE(mode)
@@ -161,6 +165,36 @@ def classify_direntry(name):
         return name + suffix
 
 
+def get_parallel_jobs():
+    """Intuit the available parallelism for build tasks."""
+
+    def _get_parallel_jobs():
+        try:
+            return max(len(os.sched_getaffinity(0)), 1)
+        except Exception:
+            pass
+
+        try:
+            return os.cpu_count() or 1
+        except Exception:
+            pass
+
+        try:
+            from multiprocessing import cpu_count
+            return cpu_count() or 1
+        except Exception:
+            pass
+
+        return 1
+
+    global _parallel_jobs
+    try:
+        return _parallel_jobs
+    except NameError:
+        _parallel_jobs = pj = _get_parallel_jobs()
+        return pj
+
+
 def log_cwd():
     sys.stdout.write("##[section]Working directory:\n")
     sys.stdout.write("  {}/\n".format(shlex.quote(os.getcwd())))
@@ -190,6 +224,7 @@ def log_platform():
         if lver[0]:
             sys.stdout.write("C library:   {} {}\n".format(*lver))
 
+    sys.stdout.write("Parallelism: {}\n".format(get_parallel_jobs()))
     sys.stdout.write("\n")
     sys.stdout.flush()
 
@@ -251,6 +286,19 @@ def run(cmd, **kwargs):
     return subprocess.check_call(cmd, **kwargs)
 
 
+def setenv(var, value):
+    """Like os.environ[var] = value, but logs the action."""
+    sys.stdout.write("##[command]export {}={}\n".format(
+        shlex.quote(var), shlex.quote(value)))
+    os.environ[var] = value
+
+
+def unsetenv(var):
+    """Like os.environ.pop(var, None), but logs the action."""
+    log_command("unset", var)
+    os.environ.pop(var, None)
+
+
 def remove(fname):
     """Like os.remove, but logs the action."""
     log_command("rm", fname)
@@ -292,7 +340,6 @@ def rename_aside(dir, prefix, suffix):
 
 
 def recursive_reset_timestamps(topdir, timestamp):
-
     """Recursively reset the atime and mtime of everything within TOPDIR
        to TIMESTAMP, except that version control directories are
        skipped.  See above for the list of recognized version control
@@ -369,12 +416,115 @@ def working_directory(dest):
 
 
 def augment_path(var, dir):
-    """Add DIR to the front of the PATH-like environment variable VAR."""
-    if var in os.environ:
-        os.environ[var] = dir + os.pathsep + os.environ[var]
+    """Add DIR to the front of the PATH-like environment variable VAR,
+       or move it to the front if it's already present."""
+
+    if var not in os.environ:
+        value = dir
     else:
-        os.environ[var] = dir
-    log_command("export", "{}={}".format(var, os.environ[var]))
+        value = os.environ[var].split(os.pathsep)
+        for i in range(len(value)):
+            if value[i] == dir:
+                if i > 0:
+                    del value[i]
+                    value.insert(0, dir)
+                break
+        else:
+            value.insert(0, dir)
+        value = os.pathsep.join(value)
+
+    setenv(var, value)
+
+
+def activate_venv(venv_dir):
+    """Activate a virtualenv for all subprocesses of this script.
+       Does not alter PS1, unlike ". ${venv_dir}/bin/activate".
+       Exiting from an enclosing "with restore_environ()" block
+       (see below) will deactivate the virtualenv.
+    """
+    venv_dir = os.path.abspath(venv_dir)
+    old_venv_dir = os.environ.get("VIRTUAL_ENV")
+    if venv_dir == old_venv_dir:
+        return
+
+    log_command("activate_venv", venv_dir)
+
+    if os.path.isfile(os.path.join(venv_dir, "bin", "activate")):
+        bin_dir = "bin"
+    elif os.path.isfile(os.path.join(venv_dir, "Scripts", "activate")):
+        bin_dir = "Scripts"
+    else:
+        raise RuntimeError("{!r} does not appear to be a virtualenv"
+                           .format(venv_dir))
+
+    path = os.environ["PATH"].split(os.pathsep)
+    new_bin = os.path.join(venv_dir, bin_dir)
+    if old_venv_dir is not None:
+        old_bin = os.path.join(old_venv_dir, bin_dir)
+    else:
+        old_bin = None
+    for i in range(len(path)):
+        if path[i] == new_bin or path[i] == old_bin:
+            del path[i]
+    path.insert(0, new_bin)
+
+    setenv("VIRTUAL_ENV", venv_dir)
+    setenv("PATH", os.pathsep.join(path))
+    unsetenv("PYTHONHOME")
+    # https://bugs.python.org/issue22490
+    unsetenv("__PYVENV_LAUNCHER__")
+
+
+def ensure_venv(venv_dir):
+    """As activate_venv, but, if venv_dir doesn't already exist, it is
+       created and initialized.
+    """
+    venv_dir = os.path.abspath(venv_dir)
+    if not os.path.isdir(venv_dir):
+        run([sys.executable, "-m", "venv", venv_dir])
+    activate_venv(venv_dir)
+
+
+def sanitize_env():
+    """Ensure a clean starting environment for builds."""
+
+    # Clear all of the BAD_ENVIRONMENT_VARS and all LC_* variables.
+    to_unset = []
+    for k in os.environ.keys():
+        if k in BAD_ENVIRONMENT_VARS or k.startswith("LC_"):
+            to_unset.append(k)
+
+    for k in to_unset:
+        unsetenv(k)
+
+    # Set LC_ALL=C.UTF-8 if supported, otherwise LC_ALL=C.
+    setenv("LC_ALL", "C.UTF-8")
+    try:
+        locale.setlocale(locale.LC_ALL, "")
+    except locale.Error as e:
+        log_warning("C.UTF-8 locale not available: {}".format(e))
+        setenv("LC_ALL", "C")
+        locale.setlocale(locale.LC_ALL, "")
+
+    # Set SOURCE_DATE_EPOCH if possible and not already set.
+    if "SOURCE_DATE_EPOCH" not in os.environ:
+        sourcedate = None
+        try:
+            gitcmd = ["git", "show", "-s", "--format=%ct", "HEAD"]
+            log_command(*gitcmd)
+            sourcedate = \
+                subprocess.check_output(gitcmd).decode("ascii").strip()
+        except subprocess.CalledProcessError:
+            pass
+
+        # FIXME: implement a way to do this from an sdist tarball.
+        # We could take the maximum of all the source timestamps
+        # but that seems both slow and fragile.
+
+        if sourcedate is not None:
+            setenv("SOURCE_DATE_EPOCH", sourcedate)
+        else:
+            log_warning("no VCS info available and SOURCE_DATE_EPOCH not set")
 
 
 @contextlib.contextmanager
@@ -533,46 +683,79 @@ def report_env(args):
     log_environ()
 
 
-def install_deps_ubuntu(args):
-    # Tell apt-get not to try to prompt for interactive configuration.
-    os.environ["DEBIAN_FRONTEND"] = "noninteractive"
-
-    run(["sudo", "apt-get", "update"])
-    run(["sudo", "apt-get", "install", "-y",
-         "cmake", "zlib1g-dev", "libexpat1-dev", "libxml2-utils", "xz-utils"])
-
-    run([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
-    run(["pip", "install", "--upgrade",
-         "setuptools", "wheel",
-         "pytest", "pytest-cov",
-         "flake8"])
-
+def install_deps_pip():
+    ensure_venv("build/venv")
+    run(["pip", "install", "--upgrade", "setuptools", "wheel"])
     # per advice at https://pypi.org/project/Cython/ : for a one-off CI build,
     # compiling cython's accelerator modules from source will be slower
     # overall than falling back to the pure-python implementation
     run(["pip", "install", "Cython", "--install-option=--no-cython-compile"])
 
 
-def build_libexiv2_ubuntu(args):
+def install_deps_pip_test():
+    ensure_venv("build/venv")
+    run(["pip", "install", "pytest", "pytest-cov", "flake8"])
+
+
+def install_deps_ubuntu(args):
+    # Tell apt-get not to try to prompt for interactive configuration.
+    setenv("DEBIAN_FRONTEND", "noninteractive")
+
+    run(["sudo", "apt-get", "update"])
+    run(["sudo", "apt-get", "install", "-y",
+         "cmake", "zlib1g-dev", "libexpat1-dev", "libxml2-utils", "xz-utils"])
+
+    install_deps_pip()
+    install_deps_pip_test()
+
+
+def install_deps_centos(args):
+    run(["yum", "install", "-y",
+         "cmake", "zlib-devel", "expat-devel", "libxml2", "xz"])
+    install_deps_pip()
+
+
+def build_libexiv2_linux(args, sudo_install):
     with tempfile.TemporaryDirectory() as td, working_directory(td):
+        with open("test.cpp", "w+t") as f:
+            f.write("#include <exiv2/exiv2.hpp>\n"
+                    "#if EXIV2_MAJOR_VERSION == 0"
+                    " && EXIV2_MINOR_VERSION < 27\n"
+                    "#error too old\n"
+                    "#endif\n"
+                    "int main(){}\n")
+        try:
+            run([os.environ.get("CXX", "c++"), "-std=c++11", "test.cpp"])
+            return
+        except subprocess.CalledProcessError:
+            # Either we need to build libexiv2, or the C++ compiler is broken.
+            # If the C++ compiler is broken, the next step will bomb out.
+            pass
 
         download_and_unpack_libexiv2()
         builddir = os.path.join(EXIV2_SRC_DIR, "build")
         makedirs(builddir)
         chdir(builddir)
         run(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
-        run(["cmake", "--build", "."])
+        run(["cmake", "--build", "-j"+str(get_parallel_jobs()), "."])
         run(["make", "tests"])
-        run(["sudo", "make", "install"])
+        if sudo_install:
+            run(["sudo", "make", "install"])
+        else:
+            run(["make", "install"])
 
 
 def build_cyexiv2_inplace(args):
     assert_in_srcdir()
-    run([sys.executable, "setup.py", "build_ext", "--inplace"])
+    if os.path.isdir("build/venv"):
+        activate_venv("build/venv")
+    run(["python", "setup.py", "build_ext", "--inplace"])
 
 
 def test_cyexiv2_inplace(args):
     assert_in_srcdir()
+    if os.path.isdir("build/venv"):
+        activate_venv("build/venv")
 
     with restore_environ():
         augment_path("PYTHONPATH", os.path.join(os.getcwd(), "src"))
@@ -584,19 +767,20 @@ def test_cyexiv2_inplace(args):
 
 
 def build_and_test_sdist(args):
-
     # --formats tar because we can't control the gzip invocation used by
     # --formats gztar, and by default it will record a creation timestamp,
     # rendering the tarballs not directly comparable.
     sdist_cmd = [
-        sys.executable, "setup.py", "sdist",
+        "python", "setup.py", "sdist",
         "-u", "root", "-g", "root", "--formats", "tar"
     ]
     bdist_wheel_cmd = [
-        sys.executable, "setup.py", "bdist_wheel"
+        "python", "setup.py", "bdist_wheel"
     ]
 
     assert_in_srcdir()
+    if os.path.isdir("build/venv"):
+        activate_venv("build/venv")
 
     # Create an sdist tarball from a completely clean checkout.
     run(sdist_cmd)
@@ -693,59 +877,39 @@ def build_and_test_sdist(args):
     run(["xz", "-C", "sha256", old_tarball])
 
 
-def normalize_env():
-    # Clear all of the BAD_ENVIRONMENT_VARS and all LC_* variables,
-    to_unset = []
-    for k in os.environ.keys():
-        if k in BAD_ENVIRONMENT_VARS or k.startswith("LC_"):
-            to_unset.append(k)
+def cibuildwheel_outer(args):
+    ensure_venv("build/cibw-venv")
+    run(["pip", "install", "cibuildwheel"])
 
-    for k in to_unset:
-        log_command("unset", k)
-        del os.environ[k]
+    S = setenv
+    S("CIBW_SKIP", "cp27-*")
+    S("CIBW_BEFORE_BUILD",
+      "python {project}/ci/azure-build.py cibw-beforebuild")
+    S("CIBW_TEST_COMMAND", "pytest {project}/test")
+    S("CIBW_TEST_REQUIRES", "pytest")
+    S("CIBW_BUILD_VERBOSITY", "3")
 
-    # Set LC_ALL=C.UTF-8 if supported, otherwise LC_ALL=C.
-    log_command("export", "LC_ALL=C.UTF-8")
-    os.environ["LC_ALL"] = "C.UTF-8"
-    try:
-        locale.setlocale(locale.LC_ALL, "")
-    except locale.Error as e:
-        log_warning("C.UTF-8 locale not available: {}".format(e))
+    run("cibuildwheel", "--output-dir", "wheelhouse")
 
-        log_command("export", "LC_ALL=C")
-        os.environ["LC_ALL"] = "C"
-        locale.setlocale(locale.LC_ALL, "")
 
-    # Set SOURCE_DATE_EPOCH if possible and not already set.
-    if "SOURCE_DATE_EPOCH" not in os.environ:
-        sourcedate = None
-        try:
-            gitcmd = ["git", "show", "-s", "--format=%ct", "HEAD"]
-            log_command(*gitcmd)
-            sourcedate = \
-                subprocess.check_output(gitcmd).decode("ascii").strip()
-        except subprocess.CalledProcessError:
-            pass
+def cibuildwheel_before(args):
+    report_env(args)
 
-        # FIXME: implement a way to do this from an sdist tarball.
-        # We could take the maximum of all the source timestamps
-        # but that seems both slow and fragile.
-
-        if sourcedate is not None:
-            log_command("export", "SOURCE_DATE_EPOCH="+sourcedate)
-            os.environ["SOURCE_DATE_EPOCH"] = sourcedate
-        else:
-            log_warning("no VCS info available and SOURCE_DATE_EPOCH not set")
+    install_deps_centos(args)
+    build_libexiv2_linux(args, False)
 
 
 def main():
     ACTIONS = {
         "report-env": report_env,
         "install-deps-ubuntu": install_deps_ubuntu,
-        "build-libexiv2-ubuntu": build_libexiv2_ubuntu,
+        "install-deps-centos": install_deps_centos,
+        "build-libexiv2-ubuntu": lambda a: build_libexiv2_linux(a, True),
         "build-cyexiv2-inplace": build_cyexiv2_inplace,
         "test-cyexiv2-inplace": test_cyexiv2_inplace,
-        "build-and-test-sdist": build_and_test_sdist
+        "build-and-test-sdist": build_and_test_sdist,
+        "cibw-outer": cibuildwheel_outer,
+        "cibw-beforebuild": cibuildwheel_before,
     }
 
     ap = argparse.ArgumentParser(description=__doc__)
@@ -753,7 +917,7 @@ def main():
     args = ap.parse_args()
 
     try:
-        normalize_env()
+        sanitize_env()
         ACTIONS[args.action](args)
         sys.exit(0)
 
