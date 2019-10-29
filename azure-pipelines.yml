@@ -7,7 +7,7 @@ trigger:
 - trunk
 
 jobs:
-- job: 'Build sdist'
+- job: build_sdist
   pool: {vmImage: 'ubuntu-latest'}
   steps:
   - task: UsePythonVersion@0
@@ -66,7 +66,7 @@ jobs:
       path: $(System.DefaultWorkingDirectory)/dist
       artifact: sdist
 
-- job: 'Build Linux wheels'
+- job: build_linux_wheels
   pool: {vmImage: 'ubuntu-latest'}
   steps:
   - task: UsePythonVersion@0
