@@ -13,4 +13,8 @@ include test/data/*.JPG
 include test/data/MD5SUMS
 include tox.ini
 include src/setup_hacks.py
+include src/pyexiv2/*.pxd
+include src/pyexiv2/*.pyx
+include src/pyexiv2/*.hpp
+exclude src/pyexiv2/_libexiv2.cpp
 prune doc/_build
