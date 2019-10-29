@@ -434,10 +434,11 @@ def strip_junitxml_time_attrs(xmlfile, dest=None):
     with parse_xml(xmlfile) as doc:
         for el in itertools.chain(doc.getElementsByTagName("testsuite"),
                                   doc.getElementsByTagName("testcase")):
-            try:
-                el.removeAttribute("time")
-            except DOMNotFoundError:
-                pass
+            for attr in ["time", "timestamp"]:
+                try:
+                    el.removeAttribute(attr)
+                except DOMNotFoundError:
+                    pass
 
         newxml = doc.documentElement.toprettyxml(indent=" ")
 
@@ -537,7 +538,7 @@ def install_deps_ubuntu(args):
     run([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
     run(["pip", "install", "--upgrade",
          "setuptools", "wheel",
-         "pytest", "pytest-azurepipelines", "pytest-cov",
+         "pytest", "pytest-cov",
          "flake8"])
 
     # per advice at https://pypi.org/project/Cython/ : for a one-off CI build,
