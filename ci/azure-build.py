@@ -237,9 +237,10 @@ def log_environ():
     sys.stdout.flush()
 
 
-def log_command(*cmd):
+def log_command(*cmd, suffix=""):
     sys.stdout.write("##[command]"
                      + " ".join(shlex.quote(word) for word in cmd)
+                     + suffix
                      + "\n")
     sys.stdout.flush()
 
@@ -290,7 +291,7 @@ def run_get_output(cmd, **kwargs):
     """Like subprocess.check_output, but logs the command it's about to
        run.  The return value is a list of decoded, stripped lines.
     """
-    log_command(*(cmd + ("|",)))
+    log_command(*cmd, suffix=" |")
     output = subprocess.check_output(cmd).decode("utf-8")
     return [l.rstrip() for l in output.splitlines()]
 
