@@ -27,11 +27,10 @@ jobs:
       arguments: install-deps-ubuntu
     displayName: 'Install dependencies'
 
-  # doc/ contains stuff that is currently exempt from linting
-  - script: |
-      set -x
-      python3 setup.py check -s -m
-      flake8 $(git ls-files '*.py' | grep -v '^doc/')
+  - task: PythonScript@0
+    inputs:
+      scriptPath: ./ci/azure-build.py
+      arguments: lint-cyexiv2
     displayName: 'Lint cyexiv2'
 
   - task: PythonScript@0
@@ -85,4 +84,3 @@ jobs:
     inputs:
       path: $(System.DefaultWorkingDirectory)/wheelhouse
       artifact: linux-wheels
-

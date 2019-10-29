@@ -286,6 +286,15 @@ def run(cmd, **kwargs):
     return subprocess.check_call(cmd, **kwargs)
 
 
+def run_get_output(cmd, **kwargs):
+    """Like subprocess.check_output, but logs the command it's about to
+       run.  The return value is a list of decoded, stripped lines.
+    """
+    log_command(*(cmd + "|"))
+    output = subprocess.check_output(cmd).decode("utf-8")
+    return [l.rstrip() for l in output.splitlines()]
+
+
 def setenv(var, value):
     """Like os.environ[var] = value, but logs the action."""
     sys.stdout.write("##[command]export {}={}\n".format(
@@ -510,10 +519,9 @@ def sanitize_env():
     if "SOURCE_DATE_EPOCH" not in os.environ:
         sourcedate = None
         try:
-            gitcmd = ["git", "show", "-s", "--format=%ct", "HEAD"]
-            log_command(*gitcmd)
-            sourcedate = \
-                subprocess.check_output(gitcmd).decode("ascii").strip()
+            sourcedate = run_get_output([
+                "git", "show", "-s", "--format=%ct", "HEAD"
+            ])[0]
         except subprocess.CalledProcessError:
             pass
 
@@ -685,7 +693,7 @@ def report_env(args):
 
 def install_deps_pip():
     ensure_venv("build/venv")
-    run(["pip", "install", "--upgrade", "setuptools", "wheel"])
+    run(["pip", "install", "--upgrade", "pip", "setuptools", "wheel"])
     # per advice at https://pypi.org/project/Cython/ : for a one-off CI build,
     # compiling cython's accelerator modules from source will be slower
     # overall than falling back to the pure-python implementation
@@ -694,7 +702,7 @@ def install_deps_pip():
 
 def install_deps_pip_test():
     ensure_venv("build/venv")
-    run(["pip", "install", "pytest", "pytest-cov", "flake8"])
+    run(["pip", "install", "pytest", "pytest-cov"])
 
 
 def install_deps_ubuntu(args):
@@ -743,6 +751,21 @@ def build_libexiv2_linux(args, sudo_install):
             run(["sudo", "make", "install"])
         else:
             run(["make", "install"])
+
+
+def lint_cyexiv2(args):
+    assert_in_srcdir()
+    if os.path.isdir("build/venv"):
+        activate_venv("build/venv")
+
+    run(["pip", "install", "flake8", "twine"])
+    run(["python", "setup.py", "check", "-s", "-m"])
+    run(["twine", "check"])
+
+    # doc/ contains stuff that is currently exempt from testing
+    pyfiles = [l for l in run_get_output(["git", "ls-files", "*.py"])
+               if not l.startswith("doc/")]
+    run(["flake8"] + pyfiles)
 
 
 def build_cyexiv2_inplace(args):
@@ -889,7 +912,7 @@ def cibuildwheel_outer(args):
     S("CIBW_TEST_REQUIRES", "pytest")
     S("CIBW_BUILD_VERBOSITY", "3")
 
-    run("cibuildwheel", "--output-dir", "wheelhouse")
+    run(["cibuildwheel", "--output-dir", "wheelhouse"])
 
 
 def cibuildwheel_before(args):
@@ -905,6 +928,7 @@ def main():
         "install-deps-ubuntu": install_deps_ubuntu,
         "install-deps-centos": install_deps_centos,
         "build-libexiv2-ubuntu": lambda a: build_libexiv2_linux(a, True),
+        "lint-cyexiv2": lint_cyexiv2,
         "build-cyexiv2-inplace": build_cyexiv2_inplace,
         "test-cyexiv2-inplace": test_cyexiv2_inplace,
         "build-and-test-sdist": build_and_test_sdist,
