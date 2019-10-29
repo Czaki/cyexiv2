@@ -251,6 +251,12 @@ def run(cmd, **kwargs):
     return subprocess.check_call(cmd, **kwargs)
 
 
+def remove(fname):
+    """Like os.remove, but logs the action."""
+    log_command("rm", fname)
+    os.remove(fname)
+
+
 def rename(src, dst):
     """Like os.rename, but logs the action."""
     log_command("mv", src, dst)
@@ -533,7 +539,7 @@ def install_deps_ubuntu(args):
 
     run(["sudo", "apt-get", "update"])
     run(["sudo", "apt-get", "install", "-y",
-         "cmake", "zlib1g-dev", "libexpat1-dev", "libxml2-utils"])
+         "cmake", "zlib1g-dev", "libexpat1-dev", "libxml2-utils", "xz-utils"])
 
     run([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
     run(["pip", "install", "--upgrade",
@@ -648,21 +654,43 @@ def build_and_test_sdist(args):
     compare_test_results("test-results.xml", "test-results-sdist.xml")
     run(["diff", "-u", "coverage.xml", "coverage-sdist.xml"])
 
-    wheels = sorted(os.path.join("dist", fname)
-                    for fname in os.listdir("dist")
-                    if fname.startswith("cyexiv2")
-                    and fname.endswith(".whl"))
+    distdir_contents = [os.path.join("dist", fname)
+                        for fname in os.listdir("dist")]
+
+    wheels = sorted((f for f in distdir_contents if f.endswith(".whl")),
+                    key = lambda f: (len(f), f))
     if len(wheels) != 2:
         log_error("expected 2 wheels, got: {}".format(wheels))
         raise RuntimeError("wrong number of wheels")
 
-    run(["cmp"] + wheels)
+    tarballs = sorted((f for f in distdir_contents if f.endswith(".tar")),
+                      key = lambda f: (len(f), f))
+    old_tarball = tarballs[0]
+    new_tarball = tarballs[-1]
+    try:
+        assert len(tarballs) == 3
+        assert new_tarball.endswith("-sdist.tar")
+        assert not old_tarball.endswith("-sdist.tar")
+        assert not old_tarball.endswith("-1.tar")
+    except AssertionError:
+        raise RuntimeError("tarball names not as expected: {}"
+                           .format(tarballs))
 
-    new_tarball = [os.path.join("dist", fname)
-                   for fname in os.listdir("dist")
-                   if fname.startswith("cyexiv2")
-                   and fname.endswith("-sdist.tar")][0]
-    run(["cmp", tarballs[0], new_tarball])
+    run(["cmp"] + wheels)
+    run(["cmp", old_tarball, new_tarball])
+
+    # Remove everything except one of the tarballs from the dist
+    # directory. The wheels are out-of-spec for installation anywhere,
+    # but the sdist tar will get saved as a pipeline artifact and might
+    # eventually even get uploaded to PyPI.
+    for fname in distdir_contents:
+        if fname != old_tarball:
+            remove(fname)
+
+    # Compress the remaining tarball, using xz; it comes out about 20%
+    # smaller, it doesn't embed a timestamp, and it can embed a strong
+    # integrity check.
+    run(["xz", "-C", "sha256", old_tarball])
 
 
 def normalize_env():

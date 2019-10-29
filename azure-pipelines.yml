@@ -33,7 +33,9 @@ steps:
 
 # doc/ contains stuff that is currently exempt from linting
 - script: |
-    exec flake8 $(git ls-files '*.py' | grep -v '^doc/')
+    set -x
+    python3 setup.py check -s -m
+    flake8 $(git ls-files '*.py' | grep -v '^doc/')
   displayName: 'Lint cyexiv2'
 
 - task: PythonScript@0
@@ -61,3 +63,9 @@ steps:
     codeCoverageTool: Cobertura
     summaryFileLocation: '**/coverage.xml'
   displayName: 'Upload test coverage'
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Upload built artifacts'
+  inputs:
+    path: $(System.DefaultWorkingDirectory)/dist
+    artifact: sdist
