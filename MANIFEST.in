@@ -12,4 +12,5 @@ include test/data/*.jpg
 include test/data/*.JPG
 include test/data/MD5SUMS
 include tox.ini
+include src/setup_hacks.py
 prune doc/_build

@@ -25,14 +25,24 @@
 # ******************************************************************************
 
 import os
-
+import sys
 from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
 
+TOPSRCDIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(TOPSRCDIR, "src"))
+
+from setup_hacks import (
+    install_patched_make_tarball,
+    restore_sdist_d_and_u,
+)  # noqa: E402
+
+install_patched_make_tarball()
+restore_sdist_d_and_u()
+
 
 def read_long_description():
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                           "DESCRIPTION.rst"),
+    with open(os.path.join(TOPSRCDIR, "DESCRIPTION.rst"),
               encoding="utf-8") as f:
         return f.read()
 
