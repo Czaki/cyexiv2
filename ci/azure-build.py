@@ -106,41 +106,33 @@ def is_vcs_dir(d):
 
 def classify_direntry(name):
     """Annotate a directory entry with type information, akin to what
-       GNU ls -F --color=always does."""
+       GNU ls -F does."""
     st = os.lstat(name)
     mode = st.st_mode
     perms = stat.S_IMODE(mode)
 
     if stat.S_ISREG(mode):
-        if perms & stat.S_ISUID:
-            colors = "37;41"
-        elif perms & stat.S_ISGID:
-            colors = "30;43"
-        elif perms & (stat.S_IXUSR|stat.S_IXGRP|stat.S_IXOTH):
-            colors = "01;32"
-        else:
-            colors = ""
         if perms & (stat.S_IXUSR|stat.S_IXGRP|stat.S_IXOTH):
             suffix = "*"
         else:
             suffix = ""
+        if perms & stat.S_ISUID:
+            suffix += " !suid!"
+        elif perms & stat.S_ISGID:
+            suffix += " !sgid!"
 
     elif stat.S_ISDIR(mode):
-        colors = "01;34"
         suffix = "/"
 
     elif stat.S_ISLNK(mode):
         dest = os.readlink(name)
         try:
             dest = classify_direntry(dest)
-            colors = "01;36"
             suffix = " => " + dest
         except OSError:  # broken symlink
-            colors = "40;31;01"
-            suffix = " => " + shlex.quote(dest)
+            suffix = " =/> " + shlex.quote(dest)
 
     else:
-        colors = "40;33;01"
         suffix = " % "
         if stat.S_ISBLK(mode):
             suffix += "blockdev"
@@ -160,10 +152,7 @@ def classify_direntry(name):
             suffix += "unknown"
 
     name = shlex.quote(name)
-    if colors:
-        return "\033[" + colors + "m" + name + "\033[0m" + suffix
-    else:
-        return name + suffix
+    return name + suffix
 
 
 def get_parallel_jobs():
