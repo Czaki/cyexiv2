@@ -718,7 +718,7 @@ def build_libexiv2_linux(args, sudo_install):
     try:
         run(["cmake3", "--version"])
         cmake = "cmake3"
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         run(["cmake", "--version"])
         cmake = "cmake"
 
@@ -743,7 +743,7 @@ def build_libexiv2_linux(args, sudo_install):
         makedirs(builddir)
         chdir(builddir)
         run([cmake, "..", "-DCMAKE_BUILD_TYPE=Release"])
-        run([cmake, "--build", ".", "-j", str(get_parallel_jobs())])
+        run([cmake, "--build", "."])
         run(["make", "tests"])
         if sudo_install:
             run(["sudo", "make", "install"])
