@@ -295,8 +295,8 @@ def setenv(var, value):
 
 def unsetenv(var):
     """Like os.environ.pop(var, None), but logs the action."""
-    log_command("unset", var)
-    os.environ.pop(var, None)
+    if os.environ.pop(var, None) is not None:
+        log_command("unset", var)
 
 
 def remove(fname):
@@ -704,7 +704,7 @@ def install_deps_pip_test():
 def install_deps_ubuntu(args):
     run(["sudo", "apt-get", "update"])
     run(["sudo", "DEBIAN_FRONTEND=noninteractive", "apt-get", "install", "-y",
-         "cmake", "zlib1g-dev", "libexpat1-dev", "libxml2-utils", "xz-utils"])
+         "cmake", "zlib1g-dev", "libexpat1-dev", "libxml2-utils"])
 
     ensure_venv("build/venv")
     install_deps_pip()
@@ -713,36 +713,64 @@ def install_deps_ubuntu(args):
 
 def install_deps_centos(args):
     run(["yum", "install", "-y",
-         "cmake3", "zlib-devel", "expat-devel", "libxml2", "xz"])
+         "cmake3", "zlib-devel", "expat-devel", "libxml2"])
     install_deps_pip(auditwheel=True)
+
+
+def install_deps_macos():
+    # don't waste time on cleanup
+    unsetenv("HOMEBREW_INSTALL_CLEANUP")
+    setenv("HOMEBREW_NO_INSTALL_CLEANUP", "yes")
+
+    run(["brew", "update"])
+    run(["brew", "--version"])
+    run(["brew", "install",
+         "cmake", "zlib", "expat", "libxml2"])
+
+
+def install_deps_windows():
+    pass
+
+
+def libexiv2_is_already_available():
+    from distutils.ccompiler import new_compiler
+    from distutils.sysconfig import customize_compiler
+
+    ccdata = new_compiler()
+    customize_compiler(ccdata)
+    CXX = ccdata.compiler_cxx[0]
+
+    with open("is_libexiv2_available.cpp", "w+t") as f:
+        f.write("#include <exiv2/exiv2.hpp>\n"
+                "#if EXIV2_MAJOR_VERSION == 0"
+                " && EXIV2_MINOR_VERSION < 27\n"
+                "#error too old\n"
+                "#endif\n"
+                "int main(){}\n")
+    try:
+        run([CXX, "-std=c++11", "is_libexiv2_available.cpp"])
+        return True
+
+    except subprocess.CalledProcessError:
+        # Either we need to build libexiv2, or the C++ compiler is broken.
+        # If the C++ compiler is broken, the next step will bomb out.
+        return False
 
 
 def build_libexiv2_linux(args, sudo_install):
 
-    # CentOS's RPMs for cmake 3.x install /usr/bin/cmake3; /usr/bin/cmake
-    # remains version 2.x.  exiv2 requires 3.x.
-    try:
-        run(["cmake3", "--version"])
-        cmake = "cmake3"
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        run(["cmake", "--version"])
-        cmake = "cmake"
-
     with tempfile.TemporaryDirectory() as td, working_directory(td):
-        with open("test.cpp", "w+t") as f:
-            f.write("#include <exiv2/exiv2.hpp>\n"
-                    "#if EXIV2_MAJOR_VERSION == 0"
-                    " && EXIV2_MINOR_VERSION < 27\n"
-                    "#error too old\n"
-                    "#endif\n"
-                    "int main(){}\n")
-        try:
-            run([os.environ.get("CXX", "c++"), "-std=c++11", "test.cpp"])
+        if libexiv2_is_already_available():
             return
-        except subprocess.CalledProcessError:
-            # Either we need to build libexiv2, or the C++ compiler is broken.
-            # If the C++ compiler is broken, the next step will bomb out.
-            pass
+
+        # CentOS's RPMs for cmake 3.x install /usr/bin/cmake3;
+        # /usr/bin/cmake remains version 2.x.  exiv2 requires 3.x.
+        try:
+            run(["cmake3", "--version"])
+            cmake = "cmake3"
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            run(["cmake", "--version"])
+            cmake = "cmake"
 
         download_and_unpack_libexiv2()
         builddir = os.path.join(EXIV2_SRC_DIR, "build")
@@ -756,6 +784,36 @@ def build_libexiv2_linux(args, sudo_install):
         else:
             run(["make", "install"])
 
+
+def build_libexiv2_macos():
+    with tempfile.TemporaryDirectory() as td, working_directory(td):
+        if libexiv2_is_already_available():
+            return
+
+        download_and_unpack_libexiv2()
+        builddir = os.path.join(EXIV2_SRC_DIR, "build")
+        makedirs(builddir)
+        chdir(builddir)
+
+        # This library needs to be built using the same setting of
+        # MACOS_DEPLOYMENT_TARGET that's used by distutils.
+        from distutils.sysconfig import get_config_var
+        MDT = get_config_var("MACOSX_DEPLOYMENT_TARGET") or None
+        if MDT is not None:
+            setenv("MACOSX_DEPLOYMENT_TARGET", MDT)
+
+        run([cmake, "..", "-DCMAKE_BUILD_TYPE=Release"])
+        run([cmake, "--build", "."])
+        run(["make", "tests"])
+        run(["make", "install"])
+
+
+def build_libexiv2_windows():
+    with tempfile.TemporaryDirectory() as td, working_directory(td):
+        if libexiv2_is_already_available():
+            return
+
+        raise NotImplementedError
 
 def lint_cyexiv2(args):
     assert_in_srcdir()
@@ -907,6 +965,7 @@ def build_and_test_sdist(args):
 def cibuildwheel_outer(args):
     assert_in_srcdir()
     ensure_venv("build/cibw-venv")
+    run(["pip", "install", "--upgrade", "pip"])
     run(["pip", "install", "cibuildwheel"])
 
     S = setenv
@@ -917,10 +976,11 @@ def cibuildwheel_outer(args):
     S("CIBW_TEST_REQUIRES", "pytest")
     S("CIBW_BUILD_VERBOSITY", "3")
 
-    # a version of cibw that defaults to manylinux2010 has not yet
-    # been released
-    S("CIBW_MANYLINUX1_X86_64_IMAGE", "quay.io/pypa/manylinux2010_x86_64")
-    S("CIBW_MANYLINUX1_I686_IMAGE", "quay.io/pypa/manylinux2010_i686")
+    if platform.system() == "Linux":
+        # a version of cibw that defaults to manylinux2010 has not yet
+        # been released
+        S("CIBW_MANYLINUX1_X86_64_IMAGE", "quay.io/pypa/manylinux2010_x86_64")
+        S("CIBW_MANYLINUX1_I686_IMAGE", "quay.io/pypa/manylinux2010_i686")
 
     run(["cibuildwheel", "--output-dir", "wheelhouse"])
 
@@ -930,8 +990,22 @@ def cibuildwheel_outer(args):
 
 def cibuildwheel_before(args):
     report_env(args)
-    install_deps_centos(args)
-    build_libexiv2_linux(args, False)
+
+    sysname = platform.system()
+    if sysname == "Linux":
+        install_deps_centos(args)
+        build_libexiv2_linux(args, False)
+
+    elif sysname == "MacOS":
+        install_deps_macos()
+        build_libexiv2_macos()
+
+    elif sysname == "Windows":
+        install_deps_windows()
+        build_libexiv2_windows()
+
+    else:
+        raise RuntimeError("Unrecognized system: " + sysname)
 
 
 def main():
