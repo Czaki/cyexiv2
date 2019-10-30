@@ -683,16 +683,18 @@ def report_env(args):
 
 
 def install_deps_pip(auditwheel=False):
-    pip_packages = ["setuptools", "wheel", "Cython"]
+    pip_packages = ["setuptools", "wheel"]
     if auditwheel:
         pip_packages.append("auditwheel")
+
+    run(["pip", "install", "--upgrade", "pip"])
+    run(["pip", "install", "--upgrade"] + pip_packages)
 
     # per advice at https://pypi.org/project/Cython/ : for a one-off CI build,
     # compiling cython's accelerator modules from source will be slower
     # overall than falling back to the pure-python implementation
-    run(["pip", "install", "--upgrade", "pip"])
-    run(["pip", "install", "--upgrade", "--install-option=--no-cython-compile"]
-        + pip_packages)
+    run(["pip", "install", "--upgrade", "Cython",
+         "--install-option=--no-cython-compile"])
 
 
 def install_deps_pip_test():
