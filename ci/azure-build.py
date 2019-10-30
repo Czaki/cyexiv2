@@ -719,7 +719,10 @@ def install_deps_pip(auditwheel=False):
     if auditwheel:
         pip_packages.append("auditwheel")
 
-    run(["pip", "install", "--upgrade", "pip"])
+    # On Windows, trying to use the 'pip' binary to upgrade pip will
+    # throw an "Access is denied" error, because it's trying to overwrite
+    # a running executable.
+    run(["python", "-m", "pip", "install", "--upgrade", "pip"])
     run(["pip", "install"] + pip_packages)
 
     # per advice at https://pypi.org/project/Cython/ : for a one-off CI build,
@@ -999,7 +1002,10 @@ def cibuildwheel_outer(args):
     assert_in_srcdir()
     ensure_venv("build/cibw-venv")
     try:
-        run(["pip", "install", "--upgrade", "pip"])
+        # On Windows, trying to use the 'pip' binary to upgrade pip will
+        # throw an "Access is denied" error, because it's trying to overwrite
+        # a running executable.
+        run(["python", "-m", "pip", "install", "--upgrade", "pip"])
     except subprocess.CalledProcessError:
         # debugging
         log_dir_contents("build/cibw-venv", "cibw-venv")
