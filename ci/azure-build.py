@@ -733,7 +733,7 @@ def build_libexiv2_linux(args, sudo_install):
         makedirs(builddir)
         chdir(builddir)
         run(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
-        run(["cmake", "--build", "-j", str(get_parallel_jobs()), "."])
+        run(["cmake", "--build", ".", "-j", str(get_parallel_jobs())])
         run(["make", "tests"])
         if sudo_install:
             run(["sudo", "make", "install"])
