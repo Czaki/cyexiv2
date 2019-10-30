@@ -908,6 +908,7 @@ def cibuildwheel_outer(args):
     run(["pip", "install", "twine"])
     run(["twine", "check"] + glob.glob("wheelhouse/*.whl"))
 
+
 def cibuildwheel_before(args):
     report_env(args)
 
