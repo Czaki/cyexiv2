@@ -682,7 +682,7 @@ def download_and_unpack_libexiv2():
     with open(EXIV2_SRC_BASE, "wb") as fp:
         download_and_check_hash(EXIV2_SRC_URL, EXIV2_SRC_SHA256, fp)
 
-    run(["tar", "axf", EXIV2_SRC_BASE])
+    run(["tar", "zxf", EXIV2_SRC_BASE])
     recursive_reset_timestamps(EXIV2_SRC_BASE, EXIV2_SRC_TS)
 
 
@@ -759,13 +759,13 @@ def lint_cyexiv2(args):
     if os.path.isdir("build/venv"):
         activate_venv("build/venv")
 
-    run(["pip", "install", "flake8", "twine"])
     run(["python", "setup.py", "check", "-s", "-m"])
-    run(["twine", "check"])
 
     # doc/ contains stuff that is currently exempt from testing
     pyfiles = [l for l in run_get_output(["git", "ls-files", "*.py"])
                if not l.startswith("doc/")]
+
+    run(["pip", "install", "flake8"])
     run(["flake8"] + pyfiles)
 
 
@@ -899,6 +899,9 @@ def build_and_test_sdist(args):
     # smaller, it doesn't embed a timestamp, and it can embed a strong
     # integrity check.
     run(["xz", "-C", "sha256", old_tarball])
+
+    run(["pip", "install", "twine"])
+    run(["twine", "check", old_tarball + ".xz"])
 
 
 def cibuildwheel_outer(args):
