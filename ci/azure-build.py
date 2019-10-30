@@ -707,7 +707,8 @@ def install_deps_ubuntu(args):
 
 def install_deps_centos(args):
     run(["yum", "install", "-y",
-         "cmake", "zlib-devel", "expat-devel", "libxml2", "xz"])
+         "cmake3", "zlib-devel", "expat-devel", "libxml2", "xz"])
+    run(["ls", "-l"] + glob.glob("/bin/cmake*") + glob.glob("/usr/bin/cmake*"))
     install_deps_pip()
 
 
@@ -871,10 +872,6 @@ def build_and_test_sdist(args):
     run(["cmp"] + wheels)
     run(["cmp", old_tarball, new_tarball])
 
-    # Run a Twine check on one tarball and one wheel.
-    run(["pip", "install", "twine"])
-    run(["twine", "check", old_tarball, wheels[0]])
-
     # Remove everything except one of the tarballs from the dist
     # directory. The wheels are out-of-spec for installation anywhere,
     # but the sdist tar will get saved as a pipeline artifact and might
@@ -883,10 +880,13 @@ def build_and_test_sdist(args):
         if fname != old_tarball:
             remove(fname)
 
-    # Compress the remaining tarball, using xz; it comes out about 20%
-    # smaller, it doesn't embed a timestamp, and it can embed a strong
-    # integrity check.
-    run(["xz", "-C", "sha256", old_tarball])
+    # Compress the remaining tarball.  Use gzip -n so there is no
+    # embedded timestamp.
+    run(["gzip", "-n", old_tarball])
+
+    # Run a Twine check on the tarball.
+    run(["pip", "install", "twine"])
+    run(["twine", "check", old_tarball + ".gz"])
 
 
 def cibuildwheel_outer(args):
