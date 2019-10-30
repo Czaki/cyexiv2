@@ -683,7 +683,6 @@ def report_env(args):
 
 
 def install_deps_pip():
-    ensure_venv("build/venv")
     run(["pip", "install", "--upgrade", "pip", "setuptools", "wheel"])
     # per advice at https://pypi.org/project/Cython/ : for a one-off CI build,
     # compiling cython's accelerator modules from source will be slower
@@ -692,7 +691,6 @@ def install_deps_pip():
 
 
 def install_deps_pip_test():
-    ensure_venv("build/venv")
     run(["pip", "install", "pytest", "pytest-cov"])
 
 
@@ -701,6 +699,7 @@ def install_deps_ubuntu(args):
     run(["sudo", "DEBIAN_FRONTEND=noninteractive", "apt-get", "install", "-y",
          "cmake", "zlib1g-dev", "libexpat1-dev", "libxml2-utils", "xz-utils"])
 
+    ensure_venv("build/venv")
     install_deps_pip()
     install_deps_pip_test()
 
@@ -899,6 +898,7 @@ def build_and_test_sdist(args):
 
 
 def cibuildwheel_outer(args):
+    assert_in_srcdir()
     ensure_venv("build/cibw-venv")
     run(["pip", "install", "cibuildwheel"])
 
@@ -923,7 +923,6 @@ def cibuildwheel_outer(args):
 
 def cibuildwheel_before(args):
     report_env(args)
-
     install_deps_centos(args)
     build_libexiv2_linux(args, False)
 
