@@ -871,6 +871,10 @@ def build_and_test_sdist(args):
     run(["cmp"] + wheels)
     run(["cmp", old_tarball, new_tarball])
 
+    # Run a Twine check on one tarball and one wheel.
+    run(["pip", "install", "twine"])
+    run(["twine", "check", old_tarball, wheels[0]])
+
     # Remove everything except one of the tarballs from the dist
     # directory. The wheels are out-of-spec for installation anywhere,
     # but the sdist tar will get saved as a pipeline artifact and might
@@ -884,9 +888,6 @@ def build_and_test_sdist(args):
     # integrity check.
     run(["xz", "-C", "sha256", old_tarball])
 
-    run(["pip", "install", "twine"])
-    run(["twine", "check", old_tarball + ".xz"])
-
 
 def cibuildwheel_outer(args):
     ensure_venv("build/cibw-venv")
@@ -899,8 +900,11 @@ def cibuildwheel_outer(args):
     S("CIBW_TEST_COMMAND", "pytest {project}/test")
     S("CIBW_TEST_REQUIRES", "pytest")
     S("CIBW_BUILD_VERBOSITY", "3")
-    S("CIBW_MANYLINUX_X86_64_IMAGE", "manylinux2010")
-    S("CIBW_MANYLINUX_I686_IMAGE", "manylinux2010")
+
+    # a version of cibw that defaults to manylinux2010 has not yet
+    # been released
+    S("CIBW_MANYLINUX1_X86_64_IMAGE", "quay.io/pypa/manylinux2010_x86_64")
+    S("CIBW_MANYLINUX1_I686_IMAGE", "quay.io/pypa/manylinux2010_i686")
 
     run(["cibuildwheel", "--output-dir", "wheelhouse"])
 
