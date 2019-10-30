@@ -28,6 +28,7 @@
 
 import argparse
 import contextlib
+import glob
 import hashlib
 import itertools
 import locale
@@ -816,10 +817,7 @@ def build_and_test_sdist(args):
     run(sdist_cmd)
 
     # The two tarballs should be byte-for-byte identical.
-    tarballs = sorted(os.path.join("dist", fname)
-                      for fname in os.listdir("dist")
-                      if fname.startswith("cyexiv2")
-                      and fname.endswith(".tar"))
+    tarballs = sorted(glob.glob(os.path.join("dist", "cyexiv2*.tar")))
     if len(tarballs) != 2:
         log_error("expected 2 tarballs, got: {}".format(tarballs))
         raise RuntimeError("wrong number of tarballs")
@@ -918,6 +916,8 @@ def cibuildwheel_outer(args):
 
     run(["cibuildwheel", "--output-dir", "wheelhouse"])
 
+    run(["pip", "install", "twine"])
+    run(["twine", "check"] + glob.glob("wheelhouse/*.whl"))
 
 def cibuildwheel_before(args):
     report_env(args)
