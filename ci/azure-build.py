@@ -708,11 +708,20 @@ def install_deps_ubuntu(args):
 def install_deps_centos(args):
     run(["yum", "install", "-y",
          "cmake3", "zlib-devel", "expat-devel", "libxml2", "xz"])
-    run(["ls", "-l"] + glob.glob("/bin/cmake*") + glob.glob("/usr/bin/cmake*"))
     install_deps_pip()
 
 
 def build_libexiv2_linux(args, sudo_install):
+
+    # CentOS's RPMs for cmake 3.x install /usr/bin/cmake3; /usr/bin/cmake
+    # remains version 2.x.  exiv2 requires 3.x.
+    try:
+        run(["cmake3", "--version"])
+        cmake = "cmake3"
+    except subprocess.CalledProcessError:
+        run(["cmake", "--version"])
+        cmake = "cmake"
+
     with tempfile.TemporaryDirectory() as td, working_directory(td):
         with open("test.cpp", "w+t") as f:
             f.write("#include <exiv2/exiv2.hpp>\n"
@@ -733,8 +742,8 @@ def build_libexiv2_linux(args, sudo_install):
         builddir = os.path.join(EXIV2_SRC_DIR, "build")
         makedirs(builddir)
         chdir(builddir)
-        run(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
-        run(["cmake", "--build", ".", "-j", str(get_parallel_jobs())])
+        run([cmake, "..", "-DCMAKE_BUILD_TYPE=Release"])
+        run([cmake, "--build", ".", "-j", str(get_parallel_jobs())])
         run(["make", "tests"])
         if sudo_install:
             run(["sudo", "make", "install"])
