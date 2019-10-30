@@ -30,6 +30,7 @@ import argparse
 import contextlib
 import glob
 import hashlib
+import io
 import itertools
 import locale
 import os
@@ -104,10 +105,10 @@ def is_vcs_dir(d):
     return d.lower() in VERSION_CONTROL_DIRS
 
 
-def classify_direntry(name):
+def classify_direntry(path):
     """Annotate a directory entry with type information, akin to what
        GNU ls -F does."""
-    st = os.lstat(name)
+    st = os.lstat(path)
     mode = st.st_mode
     perms = stat.S_IMODE(mode)
 
@@ -125,9 +126,10 @@ def classify_direntry(name):
         suffix = "/"
 
     elif stat.S_ISLNK(mode):
-        dest = os.readlink(name)
+        dest = os.readlink(path)
         try:
-            dest = classify_direntry(dest)
+            dest = classify_direntry(
+                os.path.join(os.path.dirname(path), dest))
             suffix = " => " + dest
         except OSError:  # broken symlink
             suffix = " =/> " + shlex.quote(dest)
@@ -151,8 +153,7 @@ def classify_direntry(name):
         else:
             suffix += "unknown"
 
-    name = shlex.quote(name)
-    return name + suffix
+    return shlex.quote(path) + suffix
 
 
 def get_parallel_jobs():
@@ -185,13 +186,25 @@ def get_parallel_jobs():
         return pj
 
 
-def log_cwd():
-    sys.stdout.write("##[section]Working directory:\n")
-    sys.stdout.write("  {}/\n".format(shlex.quote(os.getcwd())))
-    for f in sorted(os.listdir(".")):
-        sys.stdout.write("    {}\n".format(classify_direntry(f)))
+def log_file_contents(path):
+    sys.stdout.write("##[section]Contents of {}:\n"
+                     .format(shlex.quote(path)))
+    with open(path, "rt") as f:
+        sys.stdout.write(f.read())
+
+
+def log_dir_contents(dir, label):
+    sys.stdout.write("##[section]{}:\n".format(label))
+    sys.stdout.write("  {}/\n".format(shlex.quote(dir)))
+    for f in sorted(os.listdir(dir)):
+        sys.stdout.write("    {}\n".format(
+            classify_direntry(os.path.join(dir, f))))
     sys.stdout.write("\n")
     sys.stdout.flush()
+
+
+def log_cwd():
+    log_dir_contents(os.getcwd(), "Working directory")
 
 
 def log_platform():
@@ -506,6 +519,25 @@ def sanitize_env():
         setenv("LC_ALL", "C")
         locale.setlocale(locale.LC_ALL, "")
 
+    # Force use of UTF-8, line-buffered output on both stdout and
+    # stderr.
+    sys.stdout.flush()
+    sys.stdout = io.TextIOWrapper(sys.stdout.detach(),
+                                  encoding="utf-8",
+                                  errors="backslashreplace",
+                                  newline=None,
+                                  line_buffering=True)
+
+    sys.stderr.flush()
+    sys.stderr = io.TextIOWrapper(sys.stderr.detach(),
+                                  encoding="utf-8",
+                                  errors="backslashreplace",
+                                  newline=None,
+                                  line_buffering=True)
+
+    # For subprocesses.
+    setenv("PYTHONIOENCODING", "utf-8:backslashreplace")
+
     # Set SOURCE_DATE_EPOCH if possible and not already set.
     if "SOURCE_DATE_EPOCH" not in os.environ:
         sourcedate = None
@@ -802,8 +834,8 @@ def build_libexiv2_macos():
         if MDT is not None:
             setenv("MACOSX_DEPLOYMENT_TARGET", MDT)
 
-        run([cmake, "..", "-DCMAKE_BUILD_TYPE=Release"])
-        run([cmake, "--build", "."])
+        run(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
+        run(["cmake", "--build", "."])
         run(["make", "tests"])
         run(["make", "install"])
 
@@ -814,6 +846,7 @@ def build_libexiv2_windows():
             return
 
         raise NotImplementedError
+
 
 def lint_cyexiv2(args):
     assert_in_srcdir()
@@ -965,7 +998,16 @@ def build_and_test_sdist(args):
 def cibuildwheel_outer(args):
     assert_in_srcdir()
     ensure_venv("build/cibw-venv")
-    run(["pip", "install", "--upgrade", "pip"])
+    try:
+        run(["pip", "install", "--upgrade", "pip"])
+    except subprocess.CalledProcessError:
+        # debugging
+        log_dir_contents("build/cibw-venv", "cibw-venv")
+        log_dir_contents("build/cibw-venv/Scripts", "cibw-venv/Scripts")
+        log_file_contents("build/cibw-venv/Scripts/activate.bat")
+        log_environ()
+        raise
+
     run(["pip", "install", "cibuildwheel"])
 
     S = setenv
@@ -996,7 +1038,7 @@ def cibuildwheel_before(args):
         install_deps_centos(args)
         build_libexiv2_linux(args, False)
 
-    elif sysname == "MacOS":
+    elif sysname == "Darwin":
         install_deps_macos()
         build_libexiv2_macos()
 
