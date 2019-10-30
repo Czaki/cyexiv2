@@ -682,12 +682,17 @@ def report_env(args):
     log_environ()
 
 
-def install_deps_pip():
-    run(["pip", "install", "--upgrade", "pip", "setuptools", "wheel"])
+def install_deps_pip(auditwheel=False):
+    pip_packages = ["setuptools", "wheel", "Cython"]
+    if auditwheel:
+        pip_packages.append("auditwheel")
+
     # per advice at https://pypi.org/project/Cython/ : for a one-off CI build,
     # compiling cython's accelerator modules from source will be slower
     # overall than falling back to the pure-python implementation
-    run(["pip", "install", "Cython", "--install-option=--no-cython-compile"])
+    run(["pip", "install", "--upgrade", "pip"])
+    run(["pip", "install", "--upgrade", "--install-option=--no-cython-compile"]
+        + pip_packages)
 
 
 def install_deps_pip_test():
@@ -707,7 +712,7 @@ def install_deps_ubuntu(args):
 def install_deps_centos(args):
     run(["yum", "install", "-y",
          "cmake3", "zlib-devel", "expat-devel", "libxml2", "xz"])
-    install_deps_pip()
+    install_deps_pip(auditwheel=True)
 
 
 def build_libexiv2_linux(args, sudo_install):
