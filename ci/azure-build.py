@@ -697,11 +697,8 @@ def install_deps_pip_test():
 
 
 def install_deps_ubuntu(args):
-    # Tell apt-get not to try to prompt for interactive configuration.
-    setenv("DEBIAN_FRONTEND", "noninteractive")
-
     run(["sudo", "apt-get", "update"])
-    run(["sudo", "apt-get", "install", "-y",
+    run(["sudo", "DEBIAN_FRONTEND=noninteractive", "apt-get", "install", "-y",
          "cmake", "zlib1g-dev", "libexpat1-dev", "libxml2-utils", "xz-utils"])
 
     install_deps_pip()
@@ -736,7 +733,7 @@ def build_libexiv2_linux(args, sudo_install):
         makedirs(builddir)
         chdir(builddir)
         run(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
-        run(["cmake", "--build", "-j"+str(get_parallel_jobs()), "."])
+        run(["cmake", "--build", "-j", str(get_parallel_jobs()), "."])
         run(["make", "tests"])
         if sudo_install:
             run(["sudo", "make", "install"])
@@ -902,6 +899,8 @@ def cibuildwheel_outer(args):
     S("CIBW_TEST_COMMAND", "pytest {project}/test")
     S("CIBW_TEST_REQUIRES", "pytest")
     S("CIBW_BUILD_VERBOSITY", "3")
+    S("CIBW_MANYLINUX_X86_64_IMAGE", "manylinux2010")
+    S("CIBW_MANYLINUX_I686_IMAGE", "manylinux2010")
 
     run(["cibuildwheel", "--output-dir", "wheelhouse"])
 
