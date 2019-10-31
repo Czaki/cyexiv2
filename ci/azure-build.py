@@ -260,12 +260,6 @@ def log_error(msg):
     sys.stdout.flush()
 
 
-def log_exception(exc):
-    import traceback
-    msg = "".join(traceback.format_exception_only(type(exc), exc))
-    log_error(msg)
-
-
 def log_failed_process(err):
     cmd = ' '.join(shlex.quote(word) for word in err.cmd)
     if err.returncode == 0:
@@ -1057,6 +1051,9 @@ def cibuildwheel_outer(args):
         S("CIBW_MANYLINUX1_X86_64_IMAGE", "quay.io/pypa/manylinux2010_x86_64")
         S("CIBW_MANYLINUX1_I686_IMAGE", "quay.io/pypa/manylinux2010_i686")
 
+    elif platform.system() == "Windows":
+        S("LOG_EXCEPTION_TRACEBACKS", "yes")
+
     run(["cibuildwheel", "--output-dir", "wheelhouse"])
 
     run(["pip", "install", "twine"])
@@ -1111,7 +1108,12 @@ def main():
         sys.exit(1)
 
     except Exception as e:
-        log_exception(e)
+        import traceback
+        if "LOG_EXCEPTION_TRACEBACKS" in os.environ:
+            log_error(traceback.format_exc())
+        else:
+            log_error("".join(traceback.format_exception_only(type(e), e)))
+
         sys.exit(1)
 
 
