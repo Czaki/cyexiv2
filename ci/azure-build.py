@@ -766,11 +766,14 @@ def install_deps_macos():
     unsetenv("HOMEBREW_INSTALL_CLEANUP")
     setenv("HOMEBREW_NO_INSTALL_CLEANUP", "yes")
 
-    # these may already all be installed, let's see
-    # run(["brew", "update"])
-    # run(["brew", "--version"])
-    # run(["brew", "install",
-    #      "cmake", "zlib", "expat", "libxml2"])
+    run(["brew", "update"])
+    run(["brew", "--version"])
+    run(["brew", "install",
+         # md5sum is required by libexiv2 tests
+         "md5sha1sum",
+         # these may already all be installed, let's see
+         #  "cmake", "zlib", "expat", "libxml2"
+    ])
 
     # need updated certificate bundle for downloading exiv2 to work
     run(["pip", "install", "certifi"])
