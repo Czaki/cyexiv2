@@ -557,6 +557,15 @@ def sanitize_env():
         else:
             log_warning("no VCS info available and SOURCE_DATE_EPOCH not set")
 
+    # If AGENT_TEMPDIRECTORY is set, override TEMP, TMP, and TMPDIR to
+    # the same value.  (Azure may set the latter three to unusable
+    # locations!)
+    agent_tmp = os.environ.get("AGENT_TEMPDIRECTORY")
+    if agent_tmp is not None:
+        setenv("TEMP", agent_tmp)
+        setenv("TMP", agent_tmp)
+        setenv("TMPDIR", agent_tmp)
+
 
 @contextlib.contextmanager
 def restore_environ():
@@ -757,10 +766,11 @@ def install_deps_macos():
     unsetenv("HOMEBREW_INSTALL_CLEANUP")
     setenv("HOMEBREW_NO_INSTALL_CLEANUP", "yes")
 
-    run(["brew", "update"])
-    run(["brew", "--version"])
-    run(["brew", "install",
-         "cmake", "zlib", "expat", "libxml2"])
+    # these may already all be installed, let's see
+    # run(["brew", "update"])
+    # run(["brew", "--version"])
+    # run(["brew", "install",
+    #      "cmake", "zlib", "expat", "libxml2"])
 
     # need updated certificate bundle for downloading exiv2 to work
     run(["pip", "install", "certifi"])
@@ -776,7 +786,16 @@ def libexiv2_is_already_available():
 
     ccdata = new_compiler()
     customize_compiler(ccdata)
-    CXX = ccdata.compiler_cxx[0]
+    if ccdata.compiler_type == 'msvc':
+        CXX = ccdata.cc
+        # this was added in MSVC2017, but that's what azure-pipelines.yml
+        # asks for, so it should be fine
+        # (we need *at least* C++11)
+        USE_CXX11 = '/std:c++14'
+    else:
+        CXX = ccdata.compiler_cxx[0]
+        # this is a guess
+        USE_CXX11 = "-std=c++11"
 
     with open("is_libexiv2_available.cpp", "w+t") as f:
         f.write("#include <exiv2/exiv2.hpp>\n"
@@ -786,7 +805,7 @@ def libexiv2_is_already_available():
                 "#endif\n"
                 "int main(){}\n")
     try:
-        run([CXX, "-std=c++11", "is_libexiv2_available.cpp"])
+        run([CXX, USE_CXX11, "is_libexiv2_available.cpp"])
         return True
 
     except subprocess.CalledProcessError:
@@ -848,11 +867,10 @@ def build_libexiv2_macos():
 
 
 def build_libexiv2_windows():
-    if libexiv2_is_already_available():
-        return
-    raise NotImplementedError
-    #with tempfile.TemporaryDirectory() as td, working_directory(td):
-    #    pass
+    with tempfile.TemporaryDirectory() as td, working_directory(td):
+        if libexiv2_is_already_available():
+            return
+        raise NotImplementedError
 
 
 def lint_cyexiv2(args):

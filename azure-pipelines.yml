@@ -86,7 +86,9 @@ jobs:
 #       artifact: linux-wheels
 
 - job: build_macos_wheels
-  pool: {vmImage: 'macos-latest'}
+  # 10.13 is the last version of OSX whose Xcode can compile C++ programs
+  # that are compatible with MACOSX_DEPLOYMENT_TARGET=10.6.
+  pool: {vmImage: 'macos-10.13'}
   steps:
   - task: UsePythonVersion@0
     inputs:
