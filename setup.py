@@ -53,7 +53,7 @@ def extra_compile_args():
     if sysname == "Linux":
         rv = ["-std=c++11"]
     elif sysname == "Darwin":
-        rv = ["-std=c++11", "-stdlib=libc++"]
+        rv = ["-std=c++11", "-stdlib=libc++", "-mmacosx-version-min=10.9"]
     else:
         raise NotImplementedError
     rv.append('-fdebug-prefix-map='+TOPSRCDIR+'=.')
