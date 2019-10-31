@@ -768,11 +768,12 @@ def install_deps_macos():
 
     run(["brew", "update"])
     run(["brew", "--version"])
-    run(["brew", "install",
-         # md5sum is required by libexiv2 tests
-         "md5sha1sum",
-         # these may already all be installed, let's see
-         #  "cmake", "zlib", "expat", "libxml2"
+    run([
+        "brew", "install",
+        # md5sum is required by libexiv2 tests
+        "md5sha1sum",
+        # these may already all be installed, let's see
+        #  "cmake", "zlib", "expat", "libxml2"
     ])
 
     install_deps_pip(auditwheel=True)
