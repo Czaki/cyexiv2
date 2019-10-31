@@ -849,6 +849,12 @@ def build_libexiv2_linux(args, sudo_install):
 
 def build_libexiv2_macos():
     with tempfile.TemporaryDirectory() as td, working_directory(td):
+        # Depending on how exactly the Python interpreter was built,
+        # distutils may try to set MACOS_DEPLOYMENT_TARGET to 10.6 or
+        # 10.7, which forces the use of an old C++ standard library that
+        # (a) is deprecated by Apple, (b) doesn't support all of C++11.
+        setenv("MACOSX_DEPLOYMENT_TARGET", "10.9")
+
         if libexiv2_is_already_available():
             return
 
@@ -857,31 +863,6 @@ def build_libexiv2_macos():
         builddir = os.path.join(EXIV2_SRC_DIR, "build")
         makedirs(builddir)
         chdir(builddir)
-
-        # This library needs to be built using the same compiler and
-        # the same setting of MACOS_DEPLOYMENT_TARGET that's used by
-        # distutils.  Newer versions of Xcode will generate incompatible
-        # shared library dependencies.
-
-        from distutils.sysconfig import get_config_var
-        MDT = get_config_var("MACOSX_DEPLOYMENT_TARGET") or None
-        if MDT is not None:
-            setenv("MACOSX_DEPLOYMENT_TARGET", MDT)
-
-        from distutils.ccompiler import new_compiler
-        from distutils.sysconfig import customize_compiler
-        ccdata = new_compiler()
-        customize_compiler(ccdata)
-
-        ccdata = new_compiler()
-        customize_compiler(ccdata)
-
-        CC  = ccdata.compiler_so[0]
-        CXX = ccdata.compiler_cxx[0]
-        setenv("CC", CC)
-        setenv("CXX", CXX)
-
-        setenv("DEVELOPER_DIR", os.environ["XCODE_9_DEVELOPER_DIR"])
 
         run(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
         run(["cmake", "--build", "."])
