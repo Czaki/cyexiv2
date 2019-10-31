@@ -55,8 +55,6 @@ EXIV2_SRC_URL    = 'https://www.exiv2.org/builds/exiv2-0.27.2-Source.tar.gz'
 EXIV2_SRC_SHA256 = \
     '2652f56b912711327baff6dc0c90960818211cf7ab79bb5e1eb59320b78d153f'
 
-CAN_FCHDIR = os.supports_fd
-
 # This list partially cribbed from Autoconf's shell environment
 # normalization logic.
 BAD_ENVIRONMENT_VARS = frozenset((
@@ -391,35 +389,17 @@ def makedirs(dest):
 @contextlib.contextmanager
 def working_directory(dest):
     """Change into DEST for the duration of a with-context, then return to
-       the previous working directory.  Uses fchdir(2) for the return
-       if possible.
+       the previous working directory.
     """
 
-    global CAN_FCHDIR
-
     prev_wd_path = os.getcwd()
-    prev_wd_fd = -1
-    if CAN_FCHDIR:
-        try:
-            prev_wd_fd = os.open(".", os.O_PATH|os.O_DIRECTORY)
-        except (OSError, AttributeError):
-            CAN_FCHDIR = False
-
     log_command("cd", dest)
     os.chdir(dest)
-    yield
-    log_command("cd", prev_wd_path)
-    if prev_wd_fd == -1:
-        os.chdir(prev_wd_path)
-    else:
-        try:
-            os.chdir(prev_wd_fd)
-        except OSError as e:
-            log_warning("fchdir: " + str(e))
-            os.chdir(prev_wd_path)
-            CAN_FCHDIR = False
 
-        os.close(prev_wd_fd)
+    yield
+
+    log_command("cd", prev_wd_path)
+    os.chdir(prev_wd_path)
 
 
 def augment_path(var, dir):
