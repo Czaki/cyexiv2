@@ -25,6 +25,7 @@
 # ******************************************************************************
 
 import os
+import platform
 import sys
 from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
@@ -45,6 +46,18 @@ def read_long_description():
     with open(os.path.join(TOPSRCDIR, "DESCRIPTION.rst"),
               encoding="utf-8") as f:
         return f.read()
+
+
+def extra_compile_args():
+    sysname = platform.system()
+    if sysname == "Linux":
+        rv = ["-std=c++11"]
+    elif sysname == "Darwin":
+        rv = ["-std=c++11", "-stdlib=libc++"]
+    else:
+        raise NotImplementedError
+    rv.append('-fdebug-prefix-map='+TOPSRCDIR+'=.')
+    return rv
 
 
 setup(
@@ -68,8 +81,7 @@ setup(
             depends=['src/pyexiv2/_libexiv2_if.pxd',
                      'src/pyexiv2/_libexiv2_if.hpp'],
             libraries=['exiv2'],
-            extra_compile_args=['-g', '-std=c++11',
-                                '-fdebug-prefix-map='+TOPSRCDIR+'=.']
+            extra_compile_args=extra_compile_args()
         )
     ]),
 
