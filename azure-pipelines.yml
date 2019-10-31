@@ -121,11 +121,6 @@ jobs:
 
   - task: PythonScript@0
     inputs:
-      scriptPath: ./ci/windows-mystery-error.py
-    displayName: "investigate windows mystery error with tempfile"
-
-  - task: PythonScript@0
-    inputs:
       scriptPath: ./ci/azure-build.py
       arguments: cibw-outer
     displayName: 'Build and test Windows wheels'

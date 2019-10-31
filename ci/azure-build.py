@@ -889,10 +889,11 @@ def build_libexiv2_macos():
 
 
 def build_libexiv2_windows():
-    with tempfile.TemporaryDirectory() as td, working_directory(td):
-        if libexiv2_is_already_available():
-            return
-        raise NotImplementedError
+    with tempfile.TemporaryDirectory() as td:
+        with working_directory(td):
+            if libexiv2_is_already_available():
+                return
+            raise NotImplementedError
 
 
 def lint_cyexiv2(args):
