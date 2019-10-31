@@ -766,6 +766,7 @@ def libexiv2_is_already_available():
     ccdata = new_compiler()
     customize_compiler(ccdata)
     if ccdata.compiler_type == 'msvc':
+        ccdata.initialize()
         CXX = ccdata.cc
         # this was added in MSVC2017, but that's what azure-pipelines.yml
         # asks for, so it should be fine
