@@ -392,14 +392,10 @@ def working_directory(dest):
        the previous working directory.
     """
 
-    prev_wd_path = os.getcwd()
-    log_command("cd", dest)
-    os.chdir(dest)
-
+    prev_wd = os.getcwd()
+    chdir(dest)
     yield
-
-    log_command("cd", prev_wd_path)
-    os.chdir(prev_wd_path)
+    chdir(prev_wd)
 
 
 def augment_path(var, dir):
@@ -697,26 +693,24 @@ def report_env(args):
     log_environ()
 
 
-def install_deps_pip(auditwheel=False):
-    pip_packages = ["setuptools", "wheel"]
-    if auditwheel:
-        pip_packages.append("auditwheel")
+def install_deps_pip(extra_packages=[]):
 
     # On Windows, trying to use the 'pip' binary to upgrade pip will
     # throw an "Access is denied" error, because it's trying to overwrite
     # a running executable.
     run(["python", "-m", "pip", "install", "--upgrade", "pip"])
-    run(["pip", "install"] + pip_packages)
 
-    # per advice at https://pypi.org/project/Cython/ : for a one-off CI build,
-    # compiling cython's accelerator modules from source will be slower
-    # overall than falling back to the pure-python implementation
+    pip_install = ["pip", "install", "setuptools", "wheel"]
+    pip_install.extend(extra_packages)
+    run(pip_install)
+
+    # Per advice at https://pypi.org/project/Cython/ : for a one-off
+    # CI build, compiling cython's accelerator modules from source
+    # will be slower overall than falling back to the pure-python
+    # implementation.  This has to be a separate command because
+    # none of the other packages will recognize the option.
     run(["pip", "install", "Cython",
          "--install-option=--no-cython-compile"])
-
-
-def install_deps_pip_test():
-    run(["pip", "install", "pytest", "pytest-cov"])
 
 
 def install_deps_ubuntu(args):
@@ -725,14 +719,17 @@ def install_deps_ubuntu(args):
          "cmake", "zlib1g-dev", "libexpat1-dev", "libxml2-utils"])
 
     ensure_venv("build/venv")
-    install_deps_pip()
-    install_deps_pip_test()
+    install_deps_pip(extra_packages=["pytest", "pytest-cov"])
 
 
 def install_deps_centos(args):
     run(["yum", "install", "-y",
          "cmake3", "zlib-devel", "expat-devel", "libxml2"])
-    install_deps_pip(auditwheel=True)
+
+    # cibuildwheel installs auditwheel, but if we don't tell pip to
+    # install auditwheel in the same invocation that installs wheel,
+    # it might install an incompatible version of wheel.
+    install_deps_pip(extra_packages=["auditwheel"])
 
 
 def install_deps_macos():
@@ -740,19 +737,14 @@ def install_deps_macos():
     unsetenv("HOMEBREW_INSTALL_CLEANUP")
     setenv("HOMEBREW_NO_INSTALL_CLEANUP", "yes")
 
+    # md5sum is required by libexiv2 tests and is not installed by default
+    # cmake, zlib, expat, and xmllint *are* all installed by default
     run(["brew", "update"])
     run(["brew", "--version"])
-    run([
-        "brew", "install",
-        # md5sum is required by libexiv2 tests
-        "md5sha1sum",
-        # these may already all be installed, let's see
-        #  "cmake", "zlib", "expat", "libxml2"
-    ])
+    run(["brew", "install", "md5sha1sum"])
 
-    install_deps_pip(auditwheel=True)
-    # need updated certificate bundle for downloading exiv2 to work
-    run(["pip", "install", "certifi"])
+    # need updated certificate bundle or downloading exiv2 will fail
+    install_deps_pip(extra_packages=["certifi"])
 
 
 def install_deps_windows():
@@ -1003,20 +995,12 @@ def build_and_test_sdist(args):
 def cibuildwheel_outer(args):
     assert_in_srcdir()
     ensure_venv("build/cibw-venv")
-    try:
-        # On Windows, trying to use the 'pip' binary to upgrade pip will
-        # throw an "Access is denied" error, because it's trying to overwrite
-        # a running executable.
-        run(["python", "-m", "pip", "install", "--upgrade", "pip"])
-    except subprocess.CalledProcessError:
-        # debugging
-        log_dir_contents("build/cibw-venv", "cibw-venv")
-        log_dir_contents("build/cibw-venv/Scripts", "cibw-venv/Scripts")
-        log_file_contents("build/cibw-venv/Scripts/activate.bat")
-        log_environ()
-        raise
 
-    run(["pip", "install", "cibuildwheel"])
+    # On Windows, trying to use the 'pip' binary to upgrade pip will
+    # throw an "Access is denied" error, because it's trying to overwrite
+    # a running executable.
+    run(["python", "-m", "pip", "install", "--upgrade", "pip"])
+    run(["pip", "install", "cibuildwheel", "twine"])
 
     S = setenv
     S("CIBW_SKIP", "cp27-*")
@@ -1026,18 +1010,23 @@ def cibuildwheel_outer(args):
     S("CIBW_TEST_REQUIRES", "pytest")
     S("CIBW_BUILD_VERBOSITY", "3")
 
-    if platform.system() == "Linux":
+    sysname = platform.system()
+    if sysname == "Linux":
         # a version of cibw that defaults to manylinux2010 has not yet
         # been released
         S("CIBW_MANYLINUX1_X86_64_IMAGE", "quay.io/pypa/manylinux2010_x86_64")
         S("CIBW_MANYLINUX1_I686_IMAGE", "quay.io/pypa/manylinux2010_i686")
 
-    elif platform.system() == "Windows":
+    elif sysname == "Darwin":
+        # delocate won't find libexiv2.dylib without this
+        S("DYLD_LIBRARY_PATH", "/usr/local/lib")
+
+    elif sysname == "Windows":
+        # need more detail for debugging
         S("LOG_EXCEPTION_TRACEBACKS", "yes")
 
     run(["cibuildwheel", "--output-dir", "wheelhouse"])
 
-    run(["pip", "install", "twine"])
     run(["twine", "check"] + glob.glob("wheelhouse/*.whl"))
 
 
