@@ -876,7 +876,7 @@ def build_libexiv2_macos():
         setenv("CC", CC)
         setenv("CXX", CXX)
 
-        run(["sudo", "xcode-select", "-s", "/Applications/Xcode9.app"])
+        setenv("DEVELOPER_DIR", os.environ["XCODE_9_DEVELOPER_DIR"])
 
         run(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
         run(["cmake", "--build", "."])
