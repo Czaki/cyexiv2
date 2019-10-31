@@ -653,9 +653,9 @@ def compare_test_results(r1, r2):
         run(["diff", "-u", t1.name, t2.name])
 
 
-def download_and_check_hash(url, sha256, dest):
+def download_and_check_hash(url, sha256, dest, cafile):
     log_command("urlretrieve", url)
-    sslcx = ssl.create_default_context()
+    sslcx = ssl.create_default_context(cafile=cafile)
     h = hashlib.sha256()
     with urlopen(url, context=sslcx) as resp:
         headers = resp.info()
@@ -700,9 +700,9 @@ def download_and_check_hash(url, sha256, dest):
         raise RuntimeError("Checksum mismatch for downloaded file")
 
 
-def download_and_unpack_libexiv2():
+def download_and_unpack_libexiv2(cafile):
     with open(EXIV2_SRC_BASE, "wb") as fp:
-        download_and_check_hash(EXIV2_SRC_URL, EXIV2_SRC_SHA256, fp)
+        download_and_check_hash(EXIV2_SRC_URL, EXIV2_SRC_SHA256, fp, cafile)
 
     run(["tar", "zxf", EXIV2_SRC_BASE])
     recursive_reset_timestamps(EXIV2_SRC_BASE, EXIV2_SRC_TS)
@@ -762,6 +762,9 @@ def install_deps_macos():
     run(["brew", "install",
          "cmake", "zlib", "expat", "libxml2"])
 
+    # need updated certificate bundle for downloading exiv2 to work
+    run(["pip", "install", "certifi"])
+
 
 def install_deps_windows():
     pass
@@ -807,7 +810,7 @@ def build_libexiv2_linux(args, sudo_install):
             run(["cmake", "--version"])
             cmake = "cmake"
 
-        download_and_unpack_libexiv2()
+        download_and_unpack_libexiv2(cafile=None)
         builddir = os.path.join(EXIV2_SRC_DIR, "build")
         makedirs(builddir)
         chdir(builddir)
@@ -825,7 +828,8 @@ def build_libexiv2_macos():
         if libexiv2_is_already_available():
             return
 
-        download_and_unpack_libexiv2()
+        import certifi
+        download_and_unpack_libexiv2(cafile=certifi.where())
         builddir = os.path.join(EXIV2_SRC_DIR, "build")
         makedirs(builddir)
         chdir(builddir)
@@ -844,11 +848,11 @@ def build_libexiv2_macos():
 
 
 def build_libexiv2_windows():
-    with tempfile.TemporaryDirectory() as td, working_directory(td):
-        if libexiv2_is_already_available():
-            return
-
-        raise NotImplementedError
+    if libexiv2_is_already_available():
+        return
+    raise NotImplementedError
+    #with tempfile.TemporaryDirectory() as td, working_directory(td):
+    #    pass
 
 
 def lint_cyexiv2(args):
