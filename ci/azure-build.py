@@ -853,12 +853,30 @@ def build_libexiv2_macos():
         makedirs(builddir)
         chdir(builddir)
 
-        # This library needs to be built using the same setting of
-        # MACOS_DEPLOYMENT_TARGET that's used by distutils.
+        # This library needs to be built using the same compiler and
+        # the same setting of MACOS_DEPLOYMENT_TARGET that's used by
+        # distutils.  Newer versions of Xcode will generate incompatible
+        # shared library dependencies.
+
         from distutils.sysconfig import get_config_var
         MDT = get_config_var("MACOSX_DEPLOYMENT_TARGET") or None
         if MDT is not None:
             setenv("MACOSX_DEPLOYMENT_TARGET", MDT)
+
+        from distutils.ccompiler import new_compiler
+        from distutils.sysconfig import customize_compiler
+        ccdata = new_compiler()
+        customize_compiler(ccdata)
+
+        ccdata = new_compiler()
+        customize_compiler(ccdata)
+
+        CC  = ccdata.compiler_so[0]
+        CXX = ccdata.compiler_cxx[0]
+        setenv("CC", CC)
+        setenv("CXX", CXX)
+
+        run(["sudo", "xcode-select", "-s", "/Applications/Xcode9.app"])
 
         run(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
         run(["cmake", "--build", "."])
