@@ -775,6 +775,7 @@ def install_deps_macos():
          #  "cmake", "zlib", "expat", "libxml2"
     ])
 
+    install_deps_pip(auditwheel=True)
     # need updated certificate bundle for downloading exiv2 to work
     run(["pip", "install", "certifi"])
 
