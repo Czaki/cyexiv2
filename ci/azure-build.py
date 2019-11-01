@@ -351,6 +351,12 @@ def recursive_reset_timestamps(topdir, timestamp):
        directories.  TIMESTAMP is expected to be a whole number of
        seconds.
     """
+    # Note: we'd like to use os.utime(..., follow_symlinks=False) but
+    # that throws NotImplementedError on Windows.  This function is
+    # currently only used on the contents of the exiv2 source tarball,
+    # and as of 0.27.2, that tarball does not contain any symlinks, so
+    # we can live with this for now.
+
     times = (timestamp, timestamp)
     for subdir, dirs, files in os.walk(topdir):
         vcs_dirs = [d for d in dirs if is_vcs_dir(d)]
@@ -358,7 +364,7 @@ def recursive_reset_timestamps(topdir, timestamp):
             dirs.remove(d)
 
         try:
-            os.utime(subdir, times=times, follow_symlinks=False)
+            os.utime(subdir, times=times)
         except OSError as e:
             log_warning("resetting timestamp on {}: {}"
                         .format(subdir, e))
@@ -366,7 +372,7 @@ def recursive_reset_timestamps(topdir, timestamp):
         for f in files:
             fpath = os.path.join(subdir, f)
             try:
-                os.utime(fpath, times=times, follow_symlinks=False)
+                os.utime(fpath, times=times)
             except OSError as e:
                 log_warning("resetting timestamp on {}: {}"
                             .format(subdir, e))
