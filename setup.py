@@ -65,7 +65,8 @@ def extra_link_args():
     if sysname == "Linux":
         rv = []
     elif sysname == "Darwin":
-        rv = ["-std=c++11", "-stdlib=libc++", "-mmacosx-version-min=10.9"]
+        rv = ["-std=c++11", "-stdlib=libc++", "-mmacosx-version-min=10.9",
+              "-Wl,-rpath,/usr/local/lib"]
     else:
         raise NotImplementedError
     return rv
