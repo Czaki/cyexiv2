@@ -752,7 +752,8 @@ def install_deps_macos():
 
 
 def install_deps_windows():
-    pass
+    install_deps_pip(extra_packages=["conan"])
+    run(["conan", "--version"])
 
 
 def libexiv2_is_already_available():
@@ -841,11 +842,27 @@ def build_libexiv2_macos():
 
 
 def build_libexiv2_windows():
-    with tempfile.TemporaryDirectory() as td:
-        with working_directory(td):
-            if libexiv2_is_already_available():
-                return
-            raise NotImplementedError
+    with tempfile.TemporaryDirectory() as td, working_directory(td):
+        if libexiv2_is_already_available():
+            return
+
+        import struct
+        abi = struct.calcsize('P') * 8
+        conan_profile = os.path.join("..", "cmake", "msvc_conan_profiles",
+                                     "msvc2017Release" + str(abi))
+
+        download_and_unpack_libexiv2(cafile=None)
+        builddir = os.path.join(EXIV2_SRC_DIR, "build")
+        makedirs(builddir)
+        chdir(builddir)
+
+        run(["conan", "install", "..", "--build", "missing",
+             "-pr="+conan_profile])
+
+        run(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
+        run(["cmake", "--build", "."])
+        run(["make", "tests"])
+        run(["make", "install"])
 
 
 def lint_cyexiv2(args):
