@@ -60,6 +60,17 @@ def extra_compile_args():
     return rv
 
 
+def extra_link_args():
+    sysname = platform.system()
+    if sysname == "Linux":
+        rv = []
+    elif sysname == "Darwin":
+        rv = ["-std=c++11", "-stdlib=libc++", "-mmacosx-version-min=10.9"]
+    else:
+        raise NotImplementedError
+    return rv
+
+
 setup(
     name='cyexiv2',
     version='0.8.0.dev0',
@@ -81,7 +92,8 @@ setup(
             depends=['src/pyexiv2/_libexiv2_if.pxd',
                      'src/pyexiv2/_libexiv2_if.hpp'],
             libraries=['exiv2'],
-            extra_compile_args=extra_compile_args()
+            extra_compile_args=extra_compile_args(),
+            extra_link_args=extra_link_args()
         )
     ]),
 
