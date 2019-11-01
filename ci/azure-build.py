@@ -688,7 +688,26 @@ def download_and_unpack_libexiv2(cafile):
         download_and_check_hash(EXIV2_SRC_URL, EXIV2_SRC_SHA256, fp, cafile)
 
     run(["tar", "zxf", EXIV2_SRC_BASE])
-    recursive_reset_timestamps(EXIV2_SRC_BASE, EXIV2_SRC_TS)
+    recursive_reset_timestamps(EXIV2_SRC_DIR, EXIV2_SRC_TS)
+
+
+def patch_libexiv2_testsuite_for_windows():
+    """Tweak the libexiv2 testsuite for Windows:
+       - Use 'python', not 'python3', to run the "new" tests (feh)
+       - Skip tiff-test.sh, which uses "process substitution", which
+         doesn't work properly in the Windows port of bash.
+    """
+    test_Makefile = os.path.join(EXIV2_SRC_DIR, "test", "Makefile")
+    test_Makefile_bak = test_Makefile + ".bak"
+    rename(test_Makefile, test_Makefile_bak)
+    with open(test_Makefile_bak, "rt", encoding="ascii") as ifp:
+        with open(test_Makefile, "wt", encoding="ascii") as ofp:
+            for line in ifp:
+                if "tiff-test.sh" in line:
+                    continue
+                if "python3" in line:
+                    line = line.replace("python3", "python")
+                ofp.write(line)
 
 
 def report_env(args):
@@ -852,6 +871,8 @@ def build_libexiv2_windows():
                                      "msvc2017Release" + str(abi))
 
         download_and_unpack_libexiv2(cafile=None)
+        patch_libexiv2_testsuite_for_windows()
+
         builddir = os.path.join(EXIV2_SRC_DIR, "build")
         makedirs(builddir)
         chdir(builddir)
