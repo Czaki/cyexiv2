@@ -1,0 +1,15 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.4.0
+  hooks:
+  - id: trailing-whitespace
+  - id: mixed-line-ending
+  - id: check-byte-order-marker
+  - id: check-case-conflict
+  - id: end-of-file-fixer
+  - id: check-yaml
+  - id: check-vcs-permalinks
+  - id: flake8
+    exclude: '^doc/'

@@ -872,12 +872,12 @@ def lint_cyexiv2(args):
 
     run(["python", "setup.py", "check", "-s", "-m"])
 
-    # doc/ contains stuff that is currently exempt from testing
-    pyfiles = [l for l in run_get_output(["git", "ls-files", "*.py"])
-               if not l.startswith("doc/")]
-
-    run(["pip", "install", "flake8"])
-    run(["flake8"] + pyfiles)
+    run(["pip", "install", "pre-commit"])
+    # only run pre-commit checks on files that actually changed
+    changed_files = run_get_output([
+        "git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"
+    ])
+    run(["pre-commit", "run", "--files"] + changed_files)
 
 
 def build_cyexiv2_inplace(args):
