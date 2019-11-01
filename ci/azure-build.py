@@ -861,8 +861,8 @@ def build_libexiv2_windows():
 
         run(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
         run(["cmake", "--build", "."])
-        run(["make", "tests"])
-        run(["make", "install"])
+        run(["cmake", "--build", ".", "--", "tests"])
+        run(["cmake", "--build", ".", "--", "install"])
 
 
 def lint_cyexiv2(args):
