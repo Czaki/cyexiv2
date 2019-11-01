@@ -10,54 +10,51 @@ jobs:
 - job: build_sdist
   pool: {vmImage: 'ubuntu-latest'}
   steps:
-  - task: UsePythonVersion@0
-    inputs:
-      versionSpec: '3.7'
-    displayName: 'Use Python 3.7'
+  - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7'}}
 
   - task: PythonScript@0
+    displayName: 'Build environment details'
     inputs:
       scriptPath: ./ci/azure-build.py
       arguments: report-env
-    displayName: 'Build environment details'
 
   - task: PythonScript@0
+    displayName: 'Install dependencies'
     inputs:
       scriptPath: ./ci/azure-build.py
       arguments: install-deps-ubuntu
-    displayName: 'Install dependencies'
 
   - task: PythonScript@0
+    displayName: 'Lint cyexiv2'
     inputs:
       scriptPath: ./ci/azure-build.py
       arguments: lint-cyexiv2
-    displayName: 'Lint cyexiv2'
 
   - task: PythonScript@0
+    displayName: 'Build libexiv2'
     inputs:
       scriptPath: ./ci/azure-build.py
       arguments: build-libexiv2-ubuntu
-    displayName: 'Build libexiv2'
 
   - task: PythonScript@0
+    displayName: 'Build and test cyexiv2 (sdist)'
     inputs:
       scriptPath: ./ci/azure-build.py
       arguments: build-and-test-sdist
-    displayName: 'Build and test cyexiv2 (sdist)'
 
   - task: PublishTestResults@2
+    displayName: 'Upload test results'
     condition: succeededOrFailed()
     inputs:
       testResultsFiles: '**/test-results.xml'
       testRunTitle: 'Test results for Python $(python.version)'
-    displayName: 'Upload test results'
 
   - task: PublishCodeCoverageResults@1
+    displayName: 'Upload test coverage'
     condition: succeededOrFailed()
     inputs:
       codeCoverageTool: Cobertura
       summaryFileLocation: '**/coverage.xml'
-    displayName: 'Upload test coverage'
 
   - task: PublishPipelineArtifact@1
     displayName: 'Upload built artifacts'
@@ -68,38 +65,30 @@ jobs:
 # - job: build_linux_wheels
 #   pool: {vmImage: 'ubuntu-latest'}
 #   steps:
-#   - task: UsePythonVersion@0
-#     inputs:
-#       versionSpec: '3.7'
-#     displayName: 'Use Python 3.7'
+#   - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7'}}
 #
 #   - task: PythonScript@0
+#     displayName: 'Build and test Linux wheels'
 #     inputs:
 #       scriptPath: ./ci/azure-build.py
 #       arguments: cibw-outer
-#     displayName: 'Build and test Linux wheels'
 #
 #   - task: PublishPipelineArtifact@1
+#       artifact: linux-wheels
 #     displayName: 'Upload built artifacts'
 #     inputs:
 #       path: $(System.DefaultWorkingDirectory)/wheelhouse
-#       artifact: linux-wheels
 
 - job: build_macos_wheels
-  # 10.13 is the last version of OSX whose Xcode can compile C++ programs
-  # that are compatible with MACOSX_DEPLOYMENT_TARGET=10.6.
-  pool: {vmImage: 'macos-10.13'}
+  pool: {vmImage: 'macos-latest'}
   steps:
-  - task: UsePythonVersion@0
-    inputs:
-      versionSpec: '3.7'
-    displayName: 'Use Python 3.7'
+  - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7'}}
 
   - task: PythonScript@0
+    displayName: 'Build and test MacOS wheels'
     inputs:
       scriptPath: ./ci/azure-build.py
       arguments: cibw-outer
-    displayName: 'Build and test MacOS wheels'
 
   - task: PublishPipelineArtifact@1
     displayName: 'Upload built artifacts'
@@ -120,10 +109,10 @@ jobs:
   - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
 
   - task: PythonScript@0
+    displayName: 'Build and test Windows wheels'
     inputs:
       scriptPath: ./ci/azure-build.py
       arguments: cibw-outer
-    displayName: 'Build and test Windows wheels'
 
   - task: PublishPipelineArtifact@1
     displayName: 'Upload built artifacts'

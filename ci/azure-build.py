@@ -394,8 +394,10 @@ def working_directory(dest):
 
     prev_wd = os.getcwd()
     chdir(dest)
-    yield
-    chdir(prev_wd)
+    try:
+        yield
+    finally:
+        chdir(prev_wd)
 
 
 def augment_path(var, dir):
@@ -542,9 +544,11 @@ def restore_environ():
     """Restore all environment variables to their previous values upon
        exiting the context."""
     save_env = os.environ.copy()
-    yield
-    os.environ.clear()
-    os.environ.update(save_env)
+    try:
+        yield
+    finally:
+        os.environ.clear()
+        os.environ.update(save_env)
 
 
 def assert_in_srcdir():
@@ -1019,7 +1023,7 @@ def cibuildwheel_outer(args):
 
     elif sysname == "Darwin":
         # delocate won't find libexiv2.dylib without this
-        S("DYLD_LIBRARY_PATH", "/usr/local/lib")
+        S("CIBW_ENVIRONMENT", "DYLD_LIBRARY_PATH=/usr/local/lib")
 
     elif sysname == "Windows":
         # need more detail for debugging
