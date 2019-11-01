@@ -820,11 +820,10 @@ def build_libexiv2_linux(args, sudo_install):
 
 def build_libexiv2_macos():
     with tempfile.TemporaryDirectory() as td, working_directory(td):
-        # Depending on how exactly the Python interpreter was built,
-        # distutils may try to set MACOS_DEPLOYMENT_TARGET to 10.6 or
-        # 10.7, which forces the use of an old C++ standard library that
-        # (a) is deprecated by Apple, (b) doesn't support all of C++11.
+        # Ensure use of matching minimum OSX version and C++ runtime as
+        # for the module itself.
         setenv("MACOSX_DEPLOYMENT_TARGET", "10.9")
+        setenv("CXX", "clang++ -std=c++11 -stdlib=libc++")
 
         if libexiv2_is_already_available():
             return
