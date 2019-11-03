@@ -835,7 +835,12 @@ def build_libexiv2_linux(args, sudo_install):
         builddir = os.path.join(EXIV2_SRC_DIR, "build")
         makedirs(builddir)
         chdir(builddir)
-        run([cmake, "..", "-DCMAKE_BUILD_TYPE=Release"])
+        run([
+            cmake, "..",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_C_FLAGS=-DSUPPRESS_WARNINGS",
+            "-DCMAKE_CXX_FLAGS=-DSUPPRESS_WARNINGS"
+        ])
         run([cmake, "--build", "."])
         run(["make", "tests"])
         if sudo_install:
@@ -860,7 +865,11 @@ def build_libexiv2_macos():
         makedirs(builddir)
         chdir(builddir)
 
-        run(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
+        run([
+            "cmake", "..", "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_C_FLAGS=-DSUPPRESS_WARNINGS",
+            "-DCMAKE_CXX_FLAGS=-DSUPPRESS_WARNINGS"
+        ])
         run(["cmake", "--build", "."])
         run(["make", "tests"])
         run(["make", "install"])
@@ -886,7 +895,12 @@ def build_libexiv2_windows():
         run(["conan", "install", "..", "--build", "missing",
              "-pr="+conan_profile])
 
-        run(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
+        run([
+            "cmake", "..",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_C_FLAGS=/DSUPPRESS_WARNINGS",
+            "-DCMAKE_CXX_FLAGS=/DSUPPRESS_WARNINGS"
+        ])
         run(["cmake", "--build", "."])
         run(["cmake", "--build", ".", "--target", "tests"])
         run(["cmake", "--build", ".", "--target", "INSTALL"])
