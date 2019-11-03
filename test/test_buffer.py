@@ -25,66 +25,64 @@
 #
 # ******************************************************************************
 
-import unittest
-import os.path
-import hashlib
 from datetime import datetime
+import hashlib
+
+import pytest
 
 from pyexiv2.metadata import ImageMetadata
+from .helpers import load_data_file
 
-from .helpers import get_absolute_file_path, md5sum_file
+
+@pytest.fixture(scope='module')
+def smiley():
+    return load_data_file('smiley1.jpg', 'c066958457c685853293058f9bf129c1')
 
 
-class TestBuffer(unittest.TestCase):
-    def setUp(self):
-        filename = os.path.join('data', 'smiley1.jpg')
-        self.filepath = get_absolute_file_path(filename)
-        self.md5sum = 'c066958457c685853293058f9bf129c1'
-        self.assertEqual(md5sum_file(self.filepath), self.md5sum)
+def metadata_from_buffer(fi):
+    return ImageMetadata.from_buffer(fi.filedata)
 
-    def _metadata_from_buffer(self):
-        fd = open(self.filepath, 'rb')
-        data = fd.read()
-        fd.close()
-        return ImageMetadata.from_buffer(data)
 
-    def test_from_file_and_from_buffer(self):
-        # from file
-        m1 = ImageMetadata(self.filepath)
-        m1.read()
-        self.assertEqual(hashlib.md5(m1.buffer).hexdigest(), self.md5sum)
+def test_from_file_and_from_buffer(smiley):
+    # from file
+    m1 = ImageMetadata(smiley.filepath)
+    m1.read()
+    assert hashlib.md5(m1.buffer).hexdigest() == smiley.md5sum
 
-        # from buffer
-        m2 = self._metadata_from_buffer()
-        self.assertEqual(hashlib.md5(m2.buffer).hexdigest(), self.md5sum)
+    # from buffer
+    m2 = metadata_from_buffer(smiley)
+    assert hashlib.md5(m2.buffer).hexdigest() == smiley.md5sum
 
-    def test_buffer_not_updated_until_write_called(self):
-        m = self._metadata_from_buffer()
-        m.read()
-        self.assertEqual(hashlib.md5(m.buffer).hexdigest(), self.md5sum)
 
-        # Modify the value of an EXIF tag
-        m['Exif.Image.DateTime'].value = datetime.today()
-        # Check that the buffer is unchanged until write() is called
-        self.assertEqual(hashlib.md5(m.buffer).hexdigest(), self.md5sum)
-        # Write back the changes
-        m.write()
-        # Check that the buffer has changed
-        self.assertNotEqual(hashlib.md5(m.buffer).hexdigest(), self.md5sum)
+def test_buffer_not_updated_until_write_called(smiley):
+    m = metadata_from_buffer(smiley)
+    m.read()
+    assert hashlib.md5(m.buffer).hexdigest() == smiley.md5sum
 
-    def test_from_original_buffer(self):
-        m1 = self._metadata_from_buffer()
-        m2 = ImageMetadata.from_buffer(m1.buffer)
-        self.assertEqual(hashlib.md5(m2.buffer).hexdigest(), self.md5sum)
+    # Modify the value of an EXIF tag
+    m['Exif.Image.DateTime'].value = datetime.today()
+    # Check that the buffer is unchanged until write() is called
+    assert hashlib.md5(m.buffer).hexdigest() == smiley.md5sum
+    # Write back the changes
+    m.write()
+    # Check that the buffer has changed
+    assert hashlib.md5(m.buffer).hexdigest() != smiley.md5sum
 
-    def test_from_modified_buffer(self):
-        m1 = self._metadata_from_buffer()
-        m1.read()
-        key = 'Exif.Image.ImageDescription'
-        value = 'my kingdom for a semiquaver'
-        m1[key] = value
-        m1.write()
 
-        m2 = ImageMetadata.from_buffer(m1.buffer)
-        m2.read()
-        self.assertEqual(m2[key].value, value)
+def test_from_original_buffer(smiley):
+    m1 = metadata_from_buffer(smiley)
+    m2 = ImageMetadata.from_buffer(m1.buffer)
+    assert hashlib.md5(m2.buffer).hexdigest() == smiley.md5sum
+
+
+def test_from_modified_buffer(smiley):
+    m1 = metadata_from_buffer(smiley)
+    m1.read()
+    key = 'Exif.Image.ImageDescription'
+    value = 'my kingdom for a semiquaver'
+    m1[key] = value
+    m1.write()
+
+    m2 = ImageMetadata.from_buffer(m1.buffer)
+    m2.read()
+    assert m2[key].value == value

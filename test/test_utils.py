@@ -25,7 +25,7 @@
 #
 # ******************************************************************************
 
-import unittest
+import pytest
 
 from pyexiv2.utils import (
     undefined_to_string, string_to_undefined, Fraction, is_fraction,
@@ -33,57 +33,96 @@ from pyexiv2.utils import (
 )
 
 
-class TestConversions(unittest.TestCase):
-    def test_undefined_to_string(self):
-        self.assertEqual(undefined_to_string("48 50 50 49"), "0221")
-        self.assertEqual(undefined_to_string("48 50 50 49 "), "0221")
-        self.assertEqual(undefined_to_string(""), "")
-        self.assertRaises(ValueError, undefined_to_string, "foo")
-        self.assertRaises(ValueError, undefined_to_string, "48 50  50 49")
-
-    def test_string_to_undefined(self):
-        self.assertEqual(string_to_undefined("0221"), "48 50 50 49")
-        self.assertEqual(string_to_undefined(""), "")
-
-    def test_identity(self):
-        value = "0221"
-        self.assertEqual(
-            undefined_to_string(string_to_undefined(value)), value
-        )
-        value = "48 50 50 49"
-        self.assertEqual(
-            string_to_undefined(undefined_to_string(value)), value
-        )
+# For many pairs of inputs, undefined_to_string and string_to_undefined are
+# inverse functions.
+@pytest.mark.parametrize("uval, sval", [
+    ("", ""),
+    ("48 50 50 49", "0221"),
+    (" ".join(str(i) for i in range(256)),
+     "".join(chr(i) for i in range(256))),
+])
+def test_undefined_to_string_invertible(uval, sval):
+    sxval = undefined_to_string(uval)
+    uxval = string_to_undefined(sval)
+    assert sval == sxval
+    assert uval == uxval
+    # these imply u2s(s2u(s)) == s and s2u(u2s(u)) == u
 
 
-class TestFractions(unittest.TestCase):
-    def test_is_fraction(self):
-        self.assertTrue(is_fraction(Fraction()))
-        self.assertTrue(is_fraction(Fraction(3, 5)))
-        self.assertTrue(is_fraction(Fraction(Fraction(4, 5))))
-        self.assertTrue(is_fraction(Fraction('3/2')))
-        self.assertTrue(is_fraction(Fraction('-4/5')))
-        self.assertFalse(is_fraction(3 / 5))
-        self.assertFalse(is_fraction('3/5'))
-        self.assertFalse(is_fraction('2.7'))
-        self.assertFalse(is_fraction(2.7))
-        self.assertFalse(is_fraction('notafraction'))
-        self.assertFalse(is_fraction(None))
+# However, undefined_to_string is many-to-one; for some inputs,
+# it will produce a string that does not map back to the original.
+@pytest.mark.parametrize("uval, sval", [
+    ("48 50 50 49 ", "0221"),
+    ("48 50 50 49\t", "0221"),
+])
+def test_undefined_to_string_oneway(uval, sval):
+    assert undefined_to_string(uval) == sval
 
-    def test_make_fraction(self):
-        self.assertEqual(make_fraction(3, 5), Fraction(3, 5))
-        self.assertEqual(make_fraction(-3, 5), Fraction(-3, 5))
-        self.assertEqual(make_fraction('3/2'), Fraction(3, 2))
-        self.assertEqual(make_fraction('-3/4'), Fraction(-3, 4))
-        self.assertEqual(make_fraction('0/0'), Fraction(0, 1))
-        self.assertRaises(ZeroDivisionError, make_fraction, 3, 0)
-        self.assertRaises(ZeroDivisionError, make_fraction, '3/0')
-        self.assertRaises(TypeError, make_fraction, 5, 3, 2)
-        self.assertRaises(TypeError, make_fraction, None)
 
-    def test_fraction_to_string(self):
-        self.assertEqual(fraction_to_string(make_fraction(3, 5)), '3/5')
-        self.assertEqual(fraction_to_string(make_fraction(-3, 5)), '-3/5')
-        self.assertEqual(fraction_to_string(make_fraction(0, 1)), '0/1')
-        self.assertRaises(TypeError, fraction_to_string, None)
-        self.assertRaises(TypeError, fraction_to_string, 'invalid')
+# undefined_to_string also has inputs for which it will raise ValueError.
+@pytest.mark.parametrize("uval", [
+    "foo",
+    "48 50  50 49",
+])
+def test_undefined_to_string_invalid(uval):
+    with pytest.raises(ValueError):
+        undefined_to_string(uval)
+
+
+@pytest.mark.parametrize("is_f, obj", [
+    (True, Fraction()),
+    (True, Fraction(3, 5)),
+    (True, Fraction(Fraction(4, 5))),
+    (True, Fraction('3/2')),
+    (True, Fraction('-4/5')),
+    (False, 3 / 5),
+    (False, '3/5'),
+    (False, '2.7'),
+    (False, 2.7),
+    (False, 'notafraction'),
+    (False, None),
+])
+def test_is_fraction(is_f, obj):
+    assert is_fraction(obj) == is_f
+
+
+@pytest.mark.parametrize("args, frac", [
+    ((3, 5), (3, 5)),
+    ((-3, 5), (-3, 5)),
+    (('3/2',), (3, 2)),
+    (('-3/4',), (-3, 4)),
+    (('0/0',), (0, 1)),
+])
+def test_make_fraction_valid(args, frac):
+    assert make_fraction(*args) == Fraction(*frac)
+
+
+@pytest.mark.parametrize("exc, args", [
+    (ZeroDivisionError, (3, 0)),
+    (ZeroDivisionError, ('3/0',)),
+    (TypeError, (5, 3, 2)),
+    (TypeError, (None,)),
+])
+def test_make_fraction_invalid(exc, args):
+    with pytest.raises(exc):
+        make_fraction(*args)
+
+
+@pytest.mark.parametrize("frac, as_str", [
+    ((3, 5), '3/5'),
+    ((-3, 5), '-3/5'),
+    ((0, 1), '0/1'),
+])
+def test_fraction_to_string_valid(frac, as_str):
+    assert fraction_to_string(Fraction(*frac)) == as_str
+
+
+@pytest.mark.parametrize("bad_args", [
+    (None,),
+    ("invalid",),
+    (0.5,),
+    (1, 2),
+])
+def test_fraction_to_string_invalid(bad_args):
+    with pytest.raises(TypeError):
+        fraction_to_string(*bad_args)

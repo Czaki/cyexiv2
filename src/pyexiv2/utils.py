@@ -276,12 +276,10 @@ class NotifyingList(list):
             listener.contents_changed(*args)
 
     def __setitem__(self, index, item):
-        # FIXME: support slice arguments for extended slicing
         super(NotifyingList, self).__setitem__(index, item)
         self._notify_listeners()
 
     def __delitem__(self, index):
-        # FIXME: support slice arguments for extended slicing
         super(NotifyingList, self).__delitem__(index)
         self._notify_listeners()
 
