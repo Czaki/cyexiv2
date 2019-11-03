@@ -838,8 +838,8 @@ def build_libexiv2_linux(args, sudo_install):
         run([
             cmake, "..",
             "-DCMAKE_BUILD_TYPE=Release",
-            "-DCMAKE_C_FLAGS=-DSUPPRESS_WARNINGS",
-            "-DCMAKE_CXX_FLAGS=-DSUPPRESS_WARNINGS"
+            ("-DEXTRA_COMPILE_FLAGS="
+             "-DSUPPRESS_WARNINGS -Wno-deprecated-declarations")
         ])
         run([cmake, "--build", "."])
         run(["make", "tests"])
@@ -867,8 +867,8 @@ def build_libexiv2_macos():
 
         run([
             "cmake", "..", "-DCMAKE_BUILD_TYPE=Release",
-            "-DCMAKE_C_FLAGS=-DSUPPRESS_WARNINGS",
-            "-DCMAKE_CXX_FLAGS=-DSUPPRESS_WARNINGS"
+            ("-DEXTRA_COMPILE_FLAGS="
+             "-DSUPPRESS_WARNINGS -Wno-deprecated-declarations")
         ])
         run(["cmake", "--build", "."])
         run(["make", "tests"])
@@ -903,8 +903,7 @@ def build_libexiv2_windows():
         run([
             "cmake", "..",
             "-DCMAKE_BUILD_TYPE=Release",
-            "-DCMAKE_C_FLAGS=/DSUPPRESS_WARNINGS",
-            "-DCMAKE_CXX_FLAGS=/DSUPPRESS_WARNINGS"
+            "-DEXTRA_COMPILE_FLAGS=/DSUPPRESS_WARNINGS"
         ])
         run(["cmake", "--build", "."])
         run(["cmake", "--build", ".", "--target", "tests"])
