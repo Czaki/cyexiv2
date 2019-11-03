@@ -876,7 +876,10 @@ def build_libexiv2_macos():
 
 
 def build_libexiv2_windows():
-    with tempfile.TemporaryDirectory() as td, working_directory(td):
+    with tempfile.TemporaryDirectory() as td, \
+         working_directory(td), \
+         restore_environ():  # noqa: E126 - bug in flake8, indentation is fine
+
         if libexiv2_is_already_available():
             return
 
@@ -894,6 +897,8 @@ def build_libexiv2_windows():
 
         run(["conan", "install", "..", "--build", "missing",
              "-pr="+conan_profile])
+
+        setenv("EXIV2_EXT", ".exe")
 
         run([
             "cmake", "..",
