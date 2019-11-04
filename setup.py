@@ -26,10 +26,12 @@
 
 import os
 import platform
+import struct
 import sys
 from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
 
+PTRWIDTH = str(struct.calcsize('P') * 8)
 TOPSRCDIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(TOPSRCDIR, "src"))
 
@@ -51,25 +53,41 @@ def read_long_description():
 def extra_compile_args():
     sysname = platform.system()
     if sysname == "Linux":
-        rv = ["-std=c++11"]
+        return ["-std=c++11", "-fdebug-prefix-map="+TOPSRCDIR+"=."]
     elif sysname == "Darwin":
-        rv = ["-std=c++11", "-stdlib=libc++", "-mmacosx-version-min=10.9"]
+        return ["-std=c++11", "-stdlib=libc++", "-mmacosx-version-min=10.9",
+                "-Wno-deprecated-declarations",
+                "-fdebug-prefix-map="+TOPSRCDIR+"=."]
+    elif sysname == "Windows":
+        # assume MSVC17
+        return ["/std:c++14"]
     else:
         raise NotImplementedError
-    rv.append('-fdebug-prefix-map='+TOPSRCDIR+'=.')
-    return rv
+
+
+def extra_include_dirs():
+    include_path = os.environ.get("EXIV2_INCLUDE_"+PTRWIDTH)
+    if include_path:
+        return [include_path]
+    return []
 
 
 def extra_link_args():
     sysname = platform.system()
-    if sysname == "Linux":
-        rv = []
+    if sysname == "Linux" or sysname == "Windows":
+        return []
     elif sysname == "Darwin":
-        rv = ["-std=c++11", "-stdlib=libc++", "-mmacosx-version-min=10.9",
-              "-Wl,-rpath,/usr/local/lib"]
+        return ["-std=c++11", "-stdlib=libc++", "-mmacosx-version-min=10.9",
+                "-Wl,-rpath,/usr/local/lib"]
     else:
         raise NotImplementedError
-    return rv
+
+
+def extra_lib_dirs():
+    link_path = os.environ.get("EXIV2_LIB_"+PTRWIDTH)
+    if link_path:
+        return [link_path]
+    return []
 
 
 setup(
@@ -94,7 +112,9 @@ setup(
                      'src/pyexiv2/_libexiv2_if.hpp'],
             libraries=['exiv2'],
             extra_compile_args=extra_compile_args(),
-            extra_link_args=extra_link_args()
+            include_dirs=extra_include_dirs(),
+            extra_link_args=extra_link_args(),
+            library_dirs=extra_lib_dirs(),
         )
     ]),
 

@@ -40,6 +40,7 @@ import shutil
 import signal
 import ssl
 import stat
+import struct
 import subprocess
 import sys
 import tempfile
@@ -54,6 +55,8 @@ EXIV2_SRC_TS     = 1564381986  # 2019-07-29 02:33:06 +0000
 EXIV2_SRC_URL    = 'https://www.exiv2.org/builds/exiv2-0.27.2-Source.tar.gz'
 EXIV2_SRC_SHA256 = \
     '2652f56b912711327baff6dc0c90960818211cf7ab79bb5e1eb59320b78d153f'
+
+PTRWIDTH = str(struct.calcsize('P') * 8)
 
 # This list partially cribbed from Autoconf's shell environment
 # normalization logic.
@@ -769,20 +772,25 @@ def install_deps_windows():
 def libexiv2_is_already_available():
     from distutils.ccompiler import new_compiler
     from distutils.sysconfig import customize_compiler
-
     ccdata = new_compiler()
     customize_compiler(ccdata)
+
+    include_path = os.environ.get("EXIV2_INCLUDE_"+PTRWIDTH)
+
     if ccdata.compiler_type == 'msvc':
         ccdata.initialize()
-        CXX = ccdata.cc
-        # this was added in MSVC2017, but that's what azure-pipelines.yml
+
+        # /std:c++14 was added in MSVC2017, but that's what azure-pipelines.yml
         # asks for, so it should be fine
-        # (we need *at least* C++11)
-        USE_CXX11 = '/std:c++14'
+        # (we need *at least* C++11; /std:c++11 is not supported)
+        cccmd = [ccdata.cc, '/std:c++14']
+        if include_path:
+            cccmd.append('/I' + include_path)
     else:
-        CXX = ccdata.compiler_cxx[0]
-        # this is a guess
-        USE_CXX11 = "-std=c++11"
+        # guess GCC-style -std switches
+        cccmd = [ccdata.compiler_cxx[0], "-std=c++11"]
+        if include_path:
+            cccmd.append('-I' + include_path)
 
     with open("is_libexiv2_available.cpp", "w+t") as f:
         f.write("#include <exiv2/exiv2.hpp>\n"
@@ -791,8 +799,9 @@ def libexiv2_is_already_available():
                 "#error too old\n"
                 "#endif\n"
                 "int main(){}\n")
+    cccmd.append("is_libexiv2_available.cpp")
     try:
-        run([CXX, USE_CXX11, "is_libexiv2_available.cpp"])
+        run(cccmd)
         return True
 
     except subprocess.CalledProcessError:
@@ -875,10 +884,8 @@ def build_libexiv2_windows():
         if libexiv2_is_already_available():
             return
 
-        import struct
-        abi = struct.calcsize('P') * 8
         conan_profile = os.path.join("..", "cmake", "msvc_conan_profiles",
-                                     "msvc2017Release" + str(abi))
+                                     "msvc2017Release" + str(PTRWIDTH))
 
         download_and_unpack_libexiv2(patches=[
             "testsuite-with-suppress-warnings.patch",
@@ -1081,8 +1088,11 @@ def cibuildwheel_outer(args):
         S("CIBW_ENVIRONMENT", "DYLD_LIBRARY_PATH=/usr/local/lib")
 
     elif sysname == "Windows":
-        # need more detail for debugging
-        S("LOG_EXCEPTION_TRACEBACKS", "yes")
+        S("CIBW_ENVIRONMENT",
+          r"EXIV2_INCLUDE_32='c:\program files (x86)\exiv2\include' "
+          r"EXIV2_INCLUDE_64='c:\program files\exiv2\include' "
+          r"EXIV2_LIB_32='c:\program files (x86)\exiv2\lib' "
+          r"EXIV2_LIB_64='c:\program files\exiv2\lib'")
 
     run(["cibuildwheel", "--output-dir", "wheelhouse"])
 
