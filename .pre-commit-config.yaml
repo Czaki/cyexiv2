@@ -5,6 +5,7 @@ repos:
   rev: v2.4.0
   hooks:
   - id: trailing-whitespace
+    exclude: '\.patch$'
   - id: mixed-line-ending
   - id: check-byte-order-marker
   - id: check-case-conflict

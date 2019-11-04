@@ -1,0 +1,651 @@
+# Remove all of the expected error and warning messages from the
+# testsuite that are suppressed by -DSUPPRESS_WARNINGS.
+--- a/test/data/conversions.out
++++ b/test/data/conversions.out
+@@ -21,8 +21,6 @@
+ 
+ Testcase 4
+ ==========
+-Warning: Failed to convert Xmp.dc.description to Iptc.Application2.Caption
+-Warning: Failed to convert Xmp.dc.description to Exif.Image.ImageDescription
+ Xmp.dc.description                           LangAlt     2  lang="it-IT" Ciao bella, lang="de-DE" The Exif image description
+ File 1/1: k.jpg
+ k.jpg: No Exif data found in the file
+@@ -31,8 +29,6 @@
+ 
+ Testcase 5
+ ==========
+-Warning: Failed to convert Xmp.dc.description to Iptc.Application2.Caption
+-Warning: Failed to convert Xmp.dc.description to Exif.Image.ImageDescription
+      <rdf:li xml:lang="x-default">How to fix this mess</rdf:li>
+ Xmp.dc.description                           LangAlt     3  lang="x-default" How to fix this mess, lang="it-IT" Ciao bella, lang="de-DE" The Exif image description
+ Exif.Image.ImageDescription                  Ascii      21  How to fix this mess
+--- a/test/data/exiv2-test.out
++++ b/test/data/exiv2-test.out
+@@ -173,11 +173,9 @@
+ Adjusting `Exif.Photo.DateTimeOriginal' by -43261s to 2005:05:27 05:18:33
+ Adjusting `Exif.Photo.DateTimeDigitized' by -43261s to 2005:05:27 05:18:33
+ File 13/15: exiv2-canon-eos-20d.jpg
+-Warning: Directory Canon has an unexpected next pointer; ignored.
+ Adjusting `Exif.Image.DateTime' by -43261s to 2006:08:02 09:52:00
+ Adjusting `Exif.Photo.DateTimeOriginal' by -43261s to 2006:08:02 09:52:00
+ Adjusting `Exif.Photo.DateTimeDigitized' by -43261s to 2006:08:02 09:52:00
+-Warning: Directory Canon has an unexpected next pointer; ignored.
+ File 14/15: exiv2-canon-eos-d30.jpg
+ Adjusting `Exif.Image.DateTime' by -43261s to 2000:10:04 01:54:04
+ Adjusting `Exif.Photo.DateTimeOriginal' by -43261s to 2000:10:04 01:54:04
+@@ -213,7 +211,6 @@
+ File 12/15: exiv2-sony-dsc-w7.jpg
+ Renaming file to ./20050527_051833.jpg
+ File 13/15: exiv2-canon-eos-20d.jpg
+-Warning: Directory Canon has an unexpected next pointer; ignored.
+ Renaming file to ./20060802_095200.jpg
+ File 14/15: exiv2-canon-eos-d30.jpg
+ Renaming file to ./20001004_015404.jpg
+@@ -525,7 +522,6 @@
+ 20050527_051833.jpg  Exif comment    : 
+ 
+ File 13/15: 20060802_095200.jpg
+-Warning: Directory Canon has an unexpected next pointer; ignored.
+ 20060802_095200.jpg  File name       : 20060802_095200.jpg
+ 20060802_095200.jpg  File size       : 20733 Bytes
+ 20060802_095200.jpg  MIME type       : image/jpeg
+@@ -1619,7 +1615,6 @@
+ 20050527_051833.jpg   Exif.Thumbnail.JPEGInterchangeFormat         Long        1  2484
+ 20050527_051833.jpg   Exif.Thumbnail.JPEGInterchangeFormatLength   Long        1  15605
+ File 13/15: 20060802_095200.jpg
+-Warning: Directory Canon has an unexpected next pointer; ignored.
+ 20060802_095200.jpg   Exif.Image.Make                              Ascii       6  Canon
+ 20060802_095200.jpg   Exif.Image.Model                             Ascii      14  Canon EOS 20D
+ 20060802_095200.jpg   Exif.Image.Orientation                       Short       1  top, left
+@@ -2149,7 +2144,6 @@
+ 20060127_225027.jpg   Exif.Thumbnail.JPEGInterchangeFormat         Long        1  2548
+ 20060127_225027.jpg   Exif.Thumbnail.JPEGInterchangeFormatLength   Long        1  6137
+ exiv2-empty.jpg: No Exif data found in the file
+-Warning: Directory Canon has an unexpected next pointer; ignored.
+ 
+ Extract Exif data --------------------------------------------------------
+ File  1/15: exiv2-empty.jpg
+@@ -2177,7 +2171,6 @@
+ File 12/15: 20050527_051833.jpg
+ Writing Exif data from 20050527_051833.jpg to ./20050527_051833.exv
+ File 13/15: 20060802_095200.jpg
+-Warning: Directory Canon has an unexpected next pointer; ignored.
+ Writing Exif data from 20060802_095200.jpg to ./20060802_095200.exv
+ File 14/15: 20001004_015404.jpg
+ Writing Exif data from 20001004_015404.jpg to ./20001004_015404.exv
+@@ -2210,7 +2203,6 @@
+ File 12/15: 20050527_051833.jpg
+ Writing thumbnail (image/jpeg, 15605 Bytes) to file ./20050527_051833-thumb.jpg
+ File 13/15: 20060802_095200.jpg
+-Warning: Directory Canon has an unexpected next pointer; ignored.
+ Writing thumbnail (image/jpeg, 6260 Bytes) to file ./20060802_095200-thumb.jpg
+ File 14/15: 20001004_015404.jpg
+ Writing thumbnail (image/jpeg, 13824 Bytes) to file ./20001004_015404-thumb.jpg
+@@ -5327,9 +5319,7 @@
+ File 12/15: 20050527_051833.jpg
+ Erasing thumbnail data
+ File 13/15: 20060802_095200.jpg
+-Warning: Directory Canon has an unexpected next pointer; ignored.
+ Erasing thumbnail data
+-Warning: Directory Canon has an unexpected next pointer; ignored.
+ File 14/15: 20001004_015404.jpg
+ Erasing thumbnail data
+ File 15/15: 20060127_225027.jpg
+--- a/test/data/icc-test.out
++++ b/test/data/icc-test.out
+@@ -497,10 +497,6 @@
+  1624495 | 0xffc4 DHT   |      30 
+  1624527 | 0xffc4 DHT   |      27 
+  1624556 | 0xffda SOS  
+-Error: XMP Toolkit error 203: Duplicate property or field node
+-Warning: Failed to decode XMP metadata.
+-Error: XMP Toolkit error 203: Duplicate property or field node
+-Warning: Failed to decode XMP metadata.
+ STRUCTURE OF JPEG FILE: ReaganLargeJpg.jpg
+  address | marker       |  length | data
+        0 | 0xffd8 SOI  
+--- a/test/data/preview/preview-test.out
++++ b/test/data/preview/preview-test.out
+@@ -2,12 +2,10 @@
+ -----> exiv2-bug443.jpg <-----
+ 
+ Command: exiv2 -pp exiv2-bug443.jpg
+-Error: Directory Iop with 5233 entries considered invalid; not read.
+ Preview 1: image/jpeg, 288x192 pixels, 33779 bytes
+ Exit code: 0
+ 
+ Command: exiv2 -f -ep exiv2-bug443.jpg
+-Error: Directory Iop with 5233 entries considered invalid; not read.
+ Exit code: 0
+ 
+ -----> exiv2-bug444.jpg <-----
+@@ -32,47 +30,37 @@
+ -----> exiv2-bug447.jpg <-----
+ 
+ Command: exiv2 -pp exiv2-bug447.jpg
+-Error: Directory NikonPreview with 8224 entries considered invalid; not read.
+-Warning: Directory Photo, entry 0x9286 has unknown Exif (TIFF) type 14; setting type size 1.
+ Preview 1: image/jpeg, 160x120 pixels, 4093 bytes
+ Exit code: 0
+ 
+ Command: exiv2 -f -ep exiv2-bug447.jpg
+-Error: Directory NikonPreview with 8224 entries considered invalid; not read.
+-Warning: Directory Photo, entry 0x9286 has unknown Exif (TIFF) type 14; setting type size 1.
+ Exit code: 0
+ 
+ -----> exiv2-bug501.jpg <-----
+ 
+ Command: exiv2 -pp exiv2-bug501.jpg
+-Warning: Unsupported time format
+ Preview 1: image/jpeg, 120x160 pixels, 6179 bytes
+ Exit code: 0
+ 
+ Command: exiv2 -f -ep exiv2-bug501.jpg
+-Warning: Unsupported time format
+ Exit code: 0
+ 
+ -----> exiv2-bug528.jpg <-----
+ 
+ Command: exiv2 -pp exiv2-bug528.jpg
+-Warning: Directory Canon, entry 0x0200 has unknown Exif (TIFF) type 768; setting type size 1.
+ Preview 1: image/jpeg, 160x94 pixels, 4492 bytes
+ Exit code: 0
+ 
+ Command: exiv2 -f -ep exiv2-bug528.jpg
+-Warning: Directory Canon, entry 0x0200 has unknown Exif (TIFF) type 768; setting type size 1.
+ Exit code: 0
+ 
+ -----> exiv2-canon-eos-20d.jpg <-----
+ 
+ Command: exiv2 -pp exiv2-canon-eos-20d.jpg
+-Warning: Directory Canon has an unexpected next pointer; ignored.
+ Preview 1: image/jpeg, 160x120 pixels, 6260 bytes
+ Exit code: 0
+ 
+ Command: exiv2 -f -ep exiv2-canon-eos-20d.jpg
+-Warning: Directory Canon has an unexpected next pointer; ignored.
+ Exit code: 0
+ 
+ -----> exiv2-canon-eos-300d.jpg <-----
+Only in exiv2-0.27.2-Source/test: tmp
+--- a/tests/bugfixes/github/test_CVE_2017_11336.py
++++ b/tests/bugfixes/github/test_CVE_2017_11336.py
+@@ -38,8 +38,4 @@
+ 
+ """
+     ]
+-    stderr = [
+-        """Error: Directory Image, entry 0x0000 has invalid size 4294967295*8; skipping entry.
+-Error: Directory Image, entry 0x0000 has invalid size 1229524224*4; skipping entry.
+-Error: Directory Image, entry 0x0000 has invalid size 1229520896*8; skipping entry.
+-"""]
++    stderr = [""]
+--- a/tests/bugfixes/github/test_CVE_2017_11337.py
++++ b/tests/bugfixes/github/test_CVE_2017_11337.py
+@@ -17,8 +17,7 @@
+ """
+     ]
+     stderr = [
+-        """Error: Directory Image, entry 0x0144 has invalid size 4294967295*8; skipping entry.
+-$filename: No Exif data found in the file
++        """$filename: No Exif data found in the file
+ """
+     ]
+     retval = ["$no_exif_data_found_retval"]
+--- a/tests/bugfixes/github/test_CVE_2017_11338.py
++++ b/tests/bugfixes/github/test_CVE_2017_11338.py
+@@ -17,9 +17,7 @@
+ """
+     ]
+     stderr = [
+-        """Warning: Directory PanasonicRaw has an unexpected next pointer; ignored.
+-Error: Directory PanasonicRaw, entry 0x002e has invalid size 4294967295*1; skipping entry.
+-$filename: No Exif data found in the file
++        """$filename: No Exif data found in the file
+ """
+     ]
+     retval = ["$no_exif_data_found_retval"]
+--- a/tests/bugfixes/github/test_CVE_2017_11339.py
++++ b/tests/bugfixes/github/test_CVE_2017_11339.py
+@@ -36,9 +36,5 @@
+ Exif comment    : 
+ 
+ """]
+-    stderr = [
+-        """Error: Directory Image, entry 0xcf45 has invalid size 4294967292*4; skipping entry.
+-Error: Offset of directory Image, entry 0x8000 is out of bounds: Offset = 0x0012ff00; truncating the entry
+-"""
+-    ]
++    stderr = [""]
+     retval = [0]
+--- a/tests/bugfixes/github/test_CVE_2017_11340.py
++++ b/tests/bugfixes/github/test_CVE_2017_11340.py
+@@ -36,10 +36,5 @@
+ Exif comment    : 
+ 
+ """]
+-    stderr = [
+-        """Error: Directory Image, entry 0x0000 has invalid size 4294967295*1; skipping entry.
+-Error: Offset of directory Image, entry 0x0000 is out of bounds: Offset = 0x7e000000; truncating the entry
+-Error: Offset of directory Image, entry 0x0111 is out of bounds: Offset = 0x7e000000; truncating the entry
+-"""
+-    ]
++    stderr = [""]
+     retval = [0]
+--- a/tests/bugfixes/github/test_CVE_2017_11553.py
++++ b/tests/bugfixes/github/test_CVE_2017_11553.py
+@@ -38,11 +38,5 @@
+ 
+ """
+     ]
+-    stderr = [
+-        """Error: Directory Image, entry 0x0000 has invalid size 1229520896*8; skipping entry.
+-Error: Directory Image, entry 0x0000 has invalid size 1447624704*8; skipping entry.
+-Error: Directory Image, entry 0x0111 has invalid size 4294967295*2; skipping entry.
+-Warning: Directory Image, entry 0x0111: Size or data offset value not set, ignoring them.
+-"""
+-    ]
++    stderr = [""]
+     retval = [0]
+--- a/tests/bugfixes/github/test_CVE_2017_11592.py
++++ b/tests/bugfixes/github/test_CVE_2017_11592.py
+@@ -38,10 +38,5 @@
+ 
+ """
+     ]
+-    stderr = [
+-        """Error: Upper boundary of data for directory Image, entry 0x02bc is out of bounds: Offset = 0x00000001, size = 5852, exceeds buffer size by 5330 Bytes; truncating the entry
+-Error: Directory Thumbnail: Next pointer is out of bounds; ignored.
+-Error: Directory Thumbnail, entry 0x02bc has invalid size 4294967295*2; skipping entry.
+-"""
+-    ]
++    stderr = [""]
+     retval = [0]
+--- a/tests/bugfixes/github/test_CVE_2017_12955.py
++++ b/tests/bugfixes/github/test_CVE_2017_12955.py
+@@ -16,14 +16,6 @@
+ Image size      : 131345 x 65536
+ """
+     ]
+-    stderr = ["""Error: Directory Image: Next pointer is out of bounds; ignored.
+-Error: Directory Image, entry 0x0000 has invalid size 3402235904*1; skipping entry.
+-Error: Directory Image, entry 0x014a has invalid size 4294967295*1; skipping entry.
+-Warning: Directory Image, entry 0x014a doesn't look like a sub-IFD.
+-Warning: Directory Image, entry 0x4720 has unknown Exif (TIFF) type 60362; setting type size 1.
+-Error: Directory Image, entry 0x4720 has invalid size 1330792777*1; skipping entry.
+-Warning: Directory Image, entry 0x0001 has unknown Exif (TIFF) type 0; setting type size 1.
+-Error: Directory Image, entry 0x0001 has invalid size 3401632458*1; skipping entry.
+-$filename: No Exif data found in the file
++    stderr = ["""$filename: No Exif data found in the file
+ """]
+     retval = ["$no_exif_data_found_retval"]
+--- a/tests/bugfixes/github/test_CVE_2017_12956.py
++++ b/tests/bugfixes/github/test_CVE_2017_12956.py
+@@ -38,10 +38,5 @@
+ 
+ """
+     ]
+-    stderr = [
+-        """Error: Offset of directory Image, entry 0x0111 is out of bounds: Offset = 0x00001b15; truncating the entry
+-Warning: Directory Image, entry 0x0111: Size and data offset entries have different number of components, ignoring them.
+-Error: Directory Image, entry 0x010f has invalid size 2147483647*2; skipping entry.
+-"""
+-    ]
++    stderr = [""]
+     retval = [0]
+--- a/tests/bugfixes/github/test_CVE_2017_12957.py
++++ b/tests/bugfixes/github/test_CVE_2017_12957.py
+@@ -38,11 +38,5 @@
+ 
+ """
+     ]
+-    stderr = [
+-        """Error: Offset of directory Image, entry 0x0000 is out of bounds: Offset = 0x7e000000; truncating the entry
+-Error: Offset of directory Image, entry 0x0117 is out of bounds: Offset = 0x4f524900; truncating the entry
+-Error: Directory Image, entry 0x0004 has invalid size 4294967289*2; skipping entry.
+-Error: Offset of directory Image, entry 0x0100 is out of bounds: Offset = 0x0012ff00; truncating the entry
+-"""
+-    ]
++    stderr = [""]
+     retval = [0]
+--- a/tests/bugfixes/github/test_CVE_2017_14857.py
++++ b/tests/bugfixes/github/test_CVE_2017_14857.py
+@@ -39,21 +39,4 @@
+ 
+ """
+     ]
+-    stderr = [
+-        """Warning: Directory Image, entry 0x0111: Strip 0 is outside of the data area; ignored.
+-Warning: Directory Image, entry 0x0111: Strip 1 is outside of the data area; ignored.
+-Warning: Directory Image, entry 0x0111: Strip 2 is outside of the data area; ignored.
+-Warning: Directory Image, entry 0x0111: Strip 3 is outside of the data area; ignored.
+-Warning: Directory Image, entry 0x0111: Strip 4 is outside of the data area; ignored.
+-Warning: Directory Image, entry 0x0111: Strip 5 is outside of the data area; ignored.
+-Warning: Directory Image, entry 0x0111: Strip 6 is outside of the data area; ignored.
+-Warning: Directory Image, entry 0x0111: Strip 7 is outside of the data area; ignored.
+-Warning: Directory Image, entry 0x0111: Strip 8 is outside of the data area; ignored.
+-Warning: Directory Image, entry 0x0111: Strip 9 is outside of the data area; ignored.
+-Error: Offset of directory Image, entry 0x0132 is out of bounds: Offset = 0x30003030; truncating the entry
+-Error: Directory Image, entry 0x8649 has invalid size 4294967295*1; skipping entry.
+-Error: Directory Image, entry 0x8769 Sub-IFD pointer 0 is out of bounds; ignoring it.
+-Error: XMP Toolkit error 201: XML parsing failure
+-Warning: Failed to decode XMP metadata.
+-"""
+-    ]
++    stderr = [""]
+--- a/tests/bugfixes/github/test_CVE_2017_14858.py
++++ b/tests/bugfixes/github/test_CVE_2017_14858.py
+@@ -38,13 +38,5 @@
+ 
+ """
+     ]
+-    stderr = [
+-        """Error: Offset of directory Image, entry 0x0100 is out of bounds: Offset = 0x30303030; truncating the entry
+-Warning: Directory Image, entry 0x0111: Strip 17 is outside of the data area; ignored.
+-Error: Directory Photo with 8224 entries considered invalid; not read.
+-Warning: Removing 913 characters from the beginning of the XMP packet
+-Error: XMP Toolkit error 201: XML parsing failure
+-Warning: Failed to decode XMP metadata.
+-"""
+-    ]
++    stderr = [""]
+     retval = [0]
+--- a/tests/bugfixes/github/test_CVE_2017_14861.py
++++ b/tests/bugfixes/github/test_CVE_2017_14861.py
+@@ -40,13 +40,5 @@
+ 
+ """
+     ]
+-    stderr = [
+-        """Error: Directory Image: Next pointer is out of bounds; ignored.
+-Error: Offset of directory Image, entry 0x00fe is out of bounds: Offset = 0x00000000; truncating the entry
+-Error: Directory Image, entry 0x0100 has invalid size 1935897193*2; skipping entry.
+-Warning: Directory Image, entry 0x303e has unknown Exif (TIFF) type 12320; setting type size 1.
+-Error: Offset of directory Image, entry 0x0116 is out of bounds: Offset = 0x0011302a; truncating the entry
+-Warning: Directory Image, entry 0x0111: Strip 0 is outside of the data area; ignored.
+-"""
+-    ]
++    stderr = [""]
+     retval = [0]
+--- a/tests/bugfixes/github/test_CVE_2017_14863.py
++++ b/tests/bugfixes/github/test_CVE_2017_14863.py
+@@ -38,9 +38,5 @@
+ 
+ """
+     ]
+-    stderr = [
+-        """Warning: Directory Image, entry 0x0144: Strip 0 is outside of the data area; ignored.
+-Error: Directory Image, entry 0x87b1 has invalid size 4294967295*1; skipping entry.
+-"""
+-    ]
++    stderr = [""]
+     retval = [0]
+--- a/tests/bugfixes/github/test_CVE_2017_18005.py
++++ b/tests/bugfixes/github/test_CVE_2017_18005.py
+@@ -7,11 +7,6 @@
+ 
+     url = "https://github.com/Exiv2/exiv2/issues/168"
+ 
+-    stderr_common = """Error: Directory Image: IFD exceeds data buffer, cannot read next pointer.
+-Error: Offset of directory Image, entry 0x0117 is out of bounds: Offset = 0x30303030; truncating the entry
+-""" + 12 * """Error: Offset of directory Image, entry 0x3030 is out of bounds: Offset = 0x30303030; truncating the entry
+-"""
+-
+     filename = "$data_path/cve_2017_18005_reproducer.tiff"
+ 
+     commands = [
+@@ -46,9 +41,9 @@
+ """
+     ]
+     stderr = [
+-        stderr_common + filename + """: No IPTC data found in the file
++        filename + """: No IPTC data found in the file
+ """ + filename + """: No XMP data found in the file
+ """,
+-        stderr_common
++        ""
+     ]
+     retval = [0, 0]
+--- a/tests/bugfixes/github/test_CVE_2018_12264.py
++++ b/tests/bugfixes/github/test_CVE_2018_12264.py
+@@ -14,8 +14,7 @@
+     commands = ["$exiv2 -ep $filename"]
+     stdout = [""]
+     stderr = [
+-        """Warning: Directory Image, entry 0x0111: Strip 0 is outside of the data area; ignored.
+-$uncaught_exception $addition_overflow_message
++        """$uncaught_exception $addition_overflow_message
+ """
+     ]
+     retval = [1]
+--- a/tests/bugfixes/github/test_CVE_2018_12265.py
++++ b/tests/bugfixes/github/test_CVE_2018_12265.py
+@@ -14,11 +14,7 @@
+     commands = ["$exiv2 -ep $filename"]
+     stdout = [""]
+     stderr = [
+-        """Error: Upper boundary of data for directory Image, entry 0x00fe is out of bounds: Offset = 0x0000002a, size = 64, exceeds buffer size by 22 Bytes; truncating the entry
+-Warning: Directory Image, entry 0x0201: Strip 0 is outside of the data area; ignored.
+-Warning: Directory Image, entry 0x0201: Strip 7 is outside of the data area; ignored.
+-Error: Offset of directory Thumbnail, entry 0x0201 is out of bounds: Offset = 0x00000000; truncating the entry
+-$uncaught_exception $addition_overflow_message
++        """$uncaught_exception $addition_overflow_message
+ """
+     ]
+     retval = [1]
+--- a/tests/bugfixes/github/test_issue_428.py
++++ b/tests/bugfixes/github/test_issue_428.py
+@@ -25,11 +25,6 @@
+ 
+     commands = ["$exiv2 " + fname for fname in filenames]
+     stdout = [""] * len(filenames)
+-    stderr = [ stderr_exception(fname) for fname in filenames[0:6] ]
+-    stderr.append("""Error: XMP Toolkit error 201: XML parsing failure
+-Warning: Failed to decode XMP metadata.
+-""" + stderr_exception(filenames[6]))
+-    stderr.append("""Warning: Failed to decode Exif metadata.
+-""" + stderr_exception(filenames[7]))
++    stderr = [ stderr_exception(fname) for fname in filenames ]
+ 
+     retval = [1] * len(filenames)
+--- a/tests/bugfixes/github/test_issue_851.py
++++ b/tests/bugfixes/github/test_issue_851.py
+@@ -25,7 +25,6 @@
+ """
+ ]
+     stderr = [
+-        """Warning: Failed to convert Xmp.xmp.CreateDate to Exif.Photo.DateTimeDigitized (Day is out of range)
+-$filename: No Exif data found in the file
++        """$filename: No Exif data found in the file
+ """]
+     retval = [253]
+--- a/tests/bugfixes/github/test_issue_855.py
++++ b/tests/bugfixes/github/test_issue_855.py
+@@ -16,8 +16,7 @@
+     filename = path("$data_path/issue_855_poc.psd")
+     commands = ["$exiv2 $filename"]
+     stdout = [""]
+-    stderr = ["""Warning: Failed to decode IPTC metadata.
+-Exiv2 exception in print action for file $filename:
++    stderr = ["""Exiv2 exception in print action for file $filename:
+ corrupted image metadata
+ """
+ ]
+--- a/tests/bugfixes/github/test_issue_867.py
++++ b/tests/bugfixes/github/test_issue_867.py
+@@ -19,8 +19,7 @@
+ """
+ ]
+     stderr = [
+-        """Warning: Failed to decode IPTC metadata.
+-$filename: No Exif data found in the file
++        """$filename: No Exif data found in the file
+ """
+ ]
+     retval = [253]
+--- a/tests/bugfixes/github/test_issue_960.py
++++ b/tests/bugfixes/github/test_issue_960.py
+@@ -14,8 +14,7 @@
+     commands = ["$exiv2 $filename1"]
+     stdout = [""]
+     stderr = [
+-"""Warning: Failed to decode Exif metadata.
+-Exiv2 exception in print action for file $filename1:
++"""Exiv2 exception in print action for file $filename1:
+ $kerCorruptedMetadata
+ """
+ ]
+--- a/tests/bugfixes/redmine/test_1305.py
++++ b/tests/bugfixes/redmine/test_1305.py
+@@ -4,18 +4,6 @@
+ 
+ 
+ class Issue1305Test(metaclass=system_tests.CaseMeta):
+-    err_msg_dir_img = """Warning: Directory Image, entry 0x3030 has unknown Exif (TIFF) type 12336; setting type size 1.
+-Error: Directory Image, entry 0x3030 has invalid size 808464432*1; skipping entry.
+-"""
+-
+-    err_msg_dir_ph = """Warning: Directory Photo, entry 0x3030 has unknown Exif (TIFF) type 12336; setting type size 1.
+-Error: Directory Photo, entry 0x3030 has invalid size 808464432*1; skipping entry.
+-"""
+-
+-    err_msg_dir_pentax = """Warning: Directory Pentax, entry 0x3030 has unknown Exif (TIFF) type 12336; setting type size 1.
+-Error: Directory Pentax, entry 0x3030 has invalid size 808464432*1; skipping entry.
+-"""
+-
+     name = "regression test for issue 1305"
+     url = "http://dev.exiv2.org/issues/1305"
+ 
+@@ -48,39 +36,5 @@
+ Exif comment    : 
+ 
+ """]
+-
+-    stderr = [
+-        """Error: Directory Image: Next pointer is out of bounds; ignored.
+-"""
+-        + 8 * err_msg_dir_img
+-        + """Warning: Directory Photo has an unexpected next pointer; ignored.
+-"""
+-        + 13 * err_msg_dir_ph
+-        + """Warning: Directory Photo, entry 0x927c has unknown Exif (TIFF) type 12336; setting type size 1.
+-Warning: Directory Pentax has an unexpected next pointer; ignored.
+-"""
+-        + 6 * err_msg_dir_pentax
+-        + """Warning: Directory Pentax, entry 0x0006 has unknown Exif (TIFF) type 12336; setting type size 1.
+-Warning: Directory Pentax, entry 0x0007 has unknown Exif (TIFF) type 12336; setting type size 1.
+-"""
+-        + 39 * err_msg_dir_pentax
+-        + 23 * err_msg_dir_ph
+-        + """Warning: Directory Photo, entry 0x3030 has unknown Exif (TIFF) type 48; setting type size 1.
+-Error: Directory Photo, entry 0x3030 has invalid size 808464432*1; skipping entry.
+-"""
+-        + 5 * err_msg_dir_ph
+-        + """Warning: Directory Photo, entry 0x3030 has unknown Exif (TIFF) type 12336; setting type size 1.
+-Error: Directory Photo, entry 0x3030 has invalid size 808452102*1; skipping entry.
+-Warning: Directory Photo, entry 0x3030 has unknown Exif (TIFF) type 12336; setting type size 1.
+-Error: Directory Photo, entry 0x3030 has invalid size 808452103*1; skipping entry.
+-"""
+-        + 3 * err_msg_dir_ph
+-        + err_msg_dir_img
+-        + """Warning: Directory Image, entry 0x3030 has unknown Exif (TIFF) type 12336; setting type size 1.
+-Error: Directory Image, entry 0x3030 has invalid size 1414415696*1; skipping entry.
+-"""
+-        + 36 * err_msg_dir_img
+-        + """Warning: JPEG format error, rc = 5
+-"""]
+-
++    stderr = [""]
+     retval = [0]
+--- a/tests/bugfixes/redmine/test_issue_443.py
++++ b/tests/bugfixes/redmine/test_issue_443.py
+@@ -53,6 +53,5 @@
+ Exif.Thumbnail.JPEGInterchangeFormat         Long        1  1628
+ Exif.Thumbnail.JPEGInterchangeFormatLength   Long        1  33779
+ """]
+-    stderr = ["""Error: Directory Iop with 5233 entries considered invalid; not read.
+-"""]
++    stderr = [""]
+     retval = [0]
+--- a/tests/bugfixes/redmine/test_issue_447.py
++++ b/tests/bugfixes/redmine/test_issue_447.py
+@@ -17,7 +17,5 @@
+ Iptc.Application2.DateCreated                Date        8  2005-08-09
+ Iptc.Application2.TimeCreated                Time       11  01:28:31-07:00
+ """]
+-    stderr = ["""Error: Directory NikonPreview with 8224 entries considered invalid; not read.
+-Warning: Directory Photo, entry 0x9286 has unknown Exif (TIFF) type 14; setting type size 1.
+-"""]
++    stderr = [""]
+     retval = [0]
+--- a/tests/bugfixes/redmine/test_issue_479.py
++++ b/tests/bugfixes/redmine/test_issue_479.py
+@@ -35,6 +35,5 @@
+ Exif.Image.FocalLength                       Rational    1  24.0 mm
+ Exif.Image.0x9286                            Undefined 264  (Binary value suppressed)
+ """]
+-    stderr = ["""Error: Directory Image: Next pointer is out of bounds; ignored.
+-"""]
++    stderr = [""]
+     retval = [0]
+--- a/tests/bugfixes/redmine/test_issue_501.py
++++ b/tests/bugfixes/redmine/test_issue_501.py
+@@ -38,6 +38,5 @@
+ Iptc.Application2.0x00e3                     String     27  http://gallery.nordharna.se
+ Iptc.Application2.0x00f2                     String      1  4
+ """]
+-    stderr = ["""Warning: Unsupported time format
+-"""]
++    stderr = [""]
+     retval = [0]
+--- a/tests/bugfixes/redmine/test_issue_554.py
++++ b/tests/bugfixes/redmine/test_issue_554.py
+@@ -22,8 +22,7 @@
+ """
+     ]
+     stderr = [
+-        """Error: 'Date' is not a valid Exif (TIFF) type; using type 'Undefined'.
+-""",
++        "",
+         ""
+     ]
+     retval = [0] * 2
+--- a/tests/bugfixes/redmine/test_issue_751.py
++++ b/tests/bugfixes/redmine/test_issue_751.py
+@@ -64,9 +64,7 @@
+     stderr = [
+         "",
+         "",
+-        """Warning: Updating namespace URI for imageapp from orig/ to dest/
+-""",
+-        """Warning: Updating namespace URI for imageapp from dest/ to orig/
+-""",
++        "",
++        "",
+     ]
+     retval = [0] * 4
+--- a/tests/bugfixes/redmine/test_issue_831.py
++++ b/tests/bugfixes/redmine/test_issue_831.py
+@@ -40,8 +40,7 @@
+ """
+     ]
+     stderr = [
+-        """Info: Write strategy: Non-intrusive
+-""",
++        "",
+         """$filename: No IPTC data found in the file
+ $filename: No XMP data found in the file
+ """
+--- a/tests/bugfixes/redmine/test_issue_855.py
++++ b/tests/bugfixes/redmine/test_issue_855.py
+@@ -58,8 +58,5 @@
+ Exif.Image.CalibrationIlluminant2            Short       1  21
+ """
+     ]
+-    stderr = [
+-        """Error: Upper boundary of data for directory Photo, entry 0x920a is out of bounds: Offset = 0x000003dc, size = 8, exceeds buffer size by 6 Bytes; truncating the entry
+-"""
+-    ]
++    stderr = [""]
+     retval = [0]

@@ -689,47 +689,16 @@ def download_and_check_hash(url, sha256, dest, cafile):
         raise RuntimeError("Checksum mismatch for downloaded file")
 
 
-def download_and_unpack_libexiv2(cafile):
+def download_and_unpack_libexiv2(*, cafile=None, patches=[]):
     with open(EXIV2_SRC_BASE, "wb") as fp:
         download_and_check_hash(EXIV2_SRC_URL, EXIV2_SRC_SHA256, fp, cafile)
 
     run(["tar", "zxf", EXIV2_SRC_BASE])
+    for patch in patches:
+        with open(os.path.join(os.path.dirname(__file__), patch), "rb") as fp:
+            run(["patch", "-p1", "-N", "-r", "-", "-d", EXIV2_SRC_DIR],
+                stdin=fp)
     recursive_reset_timestamps(EXIV2_SRC_DIR, EXIV2_SRC_TS)
-
-
-def patch_libexiv2_testsuite_for_SUPPRESS_WARNINGS():
-    """Patch libexiv2's testsuite so that it does not expect any output
-       that is suppressed by -DSUPPRESS_WARNINGS.
-    """
-    system_tests_py = os.path.join(EXIV2_SRC_DIR, "tests", "system_tests.py")
-    system_tests_py_bak = system_tests_py + ".bak"
-    rename(system_tests_py, system_tests_py_bak)
-    with open(system_tests_py_bak, "rt", encoding="ascii") as ifp:
-        with open(system_tests_py, "wt", encoding="ascii") as ofp:
-            for line in ifp:
-                if line.strip().startswith("self.compare_stderr(i"):
-                    ofp.write(line.replace(", stderr)", ", '')"))
-                else:
-                    ofp.write(line)
-
-
-def patch_libexiv2_testsuite_for_windows():
-    """Tweak the libexiv2 testsuite for Windows:
-       - Use 'python', not 'python3', to run the "new" tests (feh)
-       - Skip tiff-test.sh, which uses "process substitution", which
-         doesn't work properly in the Windows port of bash.
-    """
-    test_Makefile = os.path.join(EXIV2_SRC_DIR, "test", "Makefile")
-    test_Makefile_bak = test_Makefile + ".bak"
-    rename(test_Makefile, test_Makefile_bak)
-    with open(test_Makefile_bak, "rt", encoding="ascii") as ifp:
-        with open(test_Makefile, "wt", encoding="ascii") as ofp:
-            for line in ifp:
-                if "tiff-test.sh" in line:
-                    continue
-                if "python3" in line:
-                    line = line.replace("python3", "python")
-                ofp.write(line)
 
 
 def report_env(args):
@@ -849,8 +818,9 @@ def build_libexiv2_linux(args, sudo_install):
             run(["cmake", "--version"])
             cmake = "cmake"
 
-        download_and_unpack_libexiv2(cafile=None)
-        patch_libexiv2_testsuite_for_SUPPRESS_WARNINGS()
+        download_and_unpack_libexiv2(patches=[
+            "testsuite-with-suppress-warnings.patch",
+        ])
 
         builddir = os.path.join(EXIV2_SRC_DIR, "build")
         makedirs(builddir)
@@ -881,8 +851,9 @@ def build_libexiv2_macos():
             return
 
         import certifi
-        download_and_unpack_libexiv2(cafile=certifi.where())
-        patch_libexiv2_testsuite_for_SUPPRESS_WARNINGS()
+        download_and_unpack_libexiv2(cafile=certifi.where(), patches=[
+            "testsuite-with-suppress-warnings.patch",
+        ])
 
         builddir = os.path.join(EXIV2_SRC_DIR, "build")
         makedirs(builddir)
@@ -909,9 +880,11 @@ def build_libexiv2_windows():
         conan_profile = os.path.join("..", "cmake", "msvc_conan_profiles",
                                      "msvc2017Release" + str(abi))
 
-        download_and_unpack_libexiv2(cafile=None)
-        patch_libexiv2_testsuite_for_windows()
-        patch_libexiv2_testsuite_for_SUPPRESS_WARNINGS()
+        download_and_unpack_libexiv2(patches=[
+            "testsuite-with-suppress-warnings.patch",
+            "test-Makefile-use-bare-python.patch",
+            "test-Makefile-skip-tiff-test.patch",
+        ])
 
         builddir = os.path.join(EXIV2_SRC_DIR, "build")
         makedirs(builddir)

@@ -1,0 +1,12 @@
+# Skip tiff-test.sh, it uses bash features that don't work in the
+# Windows port (process substitution).
+--- a/test/Makefile
++++ b/test/Makefile
+@@ -75,7 +75,6 @@
+          path-test.sh         \
+          preview-test.sh      \
+          stringto-test.sh     \
+-         tiff-test.sh         \
+          webp-test.sh         \
+          write-test.sh        \
+          write2-test.sh       \

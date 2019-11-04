@@ -1,0 +1,15 @@
+# Use 'python' instead of 'python3' to invoke the newtests.
+# Python 3.x available under the name 'python' when not in a virtualenv
+# is an incorrect installation choice but it's known to happen on at
+# least some Linux distributions and sometimes also Windows.
+--- a/test/Makefile
++++ b/test/Makefile
+@@ -112,7 +112,7 @@
+ 	@if [ -e tmp/test-failed ]; then echo '***' FAILED ; cat tmp/test-failed ; echo '***' ; exit 255; fi
+ 
+ newtests:
+-	( cd ../tests ; python3 runner.py --verbose )
++	( cd ../tests ; python runner.py --verbose )
+ 
+ testv:
+ 	@for t in /video ; do \
