@@ -697,6 +697,22 @@ def download_and_unpack_libexiv2(cafile):
     recursive_reset_timestamps(EXIV2_SRC_DIR, EXIV2_SRC_TS)
 
 
+def patch_libexiv2_testsuite_for_SUPPRESS_WARNINGS():
+    """Patch libexiv2's testsuite so that it does not expect any output
+       that is suppressed by -DSUPPRESS_WARNINGS.
+    """
+    system_tests_py = os.path.join(EXIV2_SRC_DIR, "tests", "system_tests.py")
+    system_tests_py_bak = system_tests_py + ".bak"
+    rename(system_tests_py, system_tests_py_bak)
+    with open(system_tests_py_bak, "rt", encoding="ascii") as ifp:
+        with open(system_tests_py, "wt", encoding="ascii") as ofp:
+            for line in ifp:
+                if line.strip().startswith("self.compare_stderr(i"):
+                    ofp.write(line.replace(", stderr)", ", '')"))
+                else:
+                    ofp.write(line)
+
+
 def patch_libexiv2_testsuite_for_windows():
     """Tweak the libexiv2 testsuite for Windows:
        - Use 'python', not 'python3', to run the "new" tests (feh)
@@ -834,6 +850,8 @@ def build_libexiv2_linux(args, sudo_install):
             cmake = "cmake"
 
         download_and_unpack_libexiv2(cafile=None)
+        patch_libexiv2_testsuite_for_SUPPRESS_WARNINGS()
+
         builddir = os.path.join(EXIV2_SRC_DIR, "build")
         makedirs(builddir)
         chdir(builddir)
@@ -864,6 +882,8 @@ def build_libexiv2_macos():
 
         import certifi
         download_and_unpack_libexiv2(cafile=certifi.where())
+        patch_libexiv2_testsuite_for_SUPPRESS_WARNINGS()
+
         builddir = os.path.join(EXIV2_SRC_DIR, "build")
         makedirs(builddir)
         chdir(builddir)
@@ -891,6 +911,7 @@ def build_libexiv2_windows():
 
         download_and_unpack_libexiv2(cafile=None)
         patch_libexiv2_testsuite_for_windows()
+        patch_libexiv2_testsuite_for_SUPPRESS_WARNINGS()
 
         builddir = os.path.join(EXIV2_SRC_DIR, "build")
         makedirs(builddir)
