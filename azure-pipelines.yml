@@ -79,22 +79,22 @@ jobs:
 #     inputs:
 #       path: $(System.DefaultWorkingDirectory)/wheelhouse
 #
-# - job: build_macos_wheels
-#   pool: {vmImage: 'macos-latest'}
-#   steps:
-#   - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7'}}
-#
-#   - task: PythonScript@0
-#     displayName: 'Build and test MacOS wheels'
-#     inputs:
-#       scriptPath: ./ci/azure-build.py
-#       arguments: cibw-outer
-#
-#   - task: PublishPipelineArtifact@1
-#     displayName: 'Upload built artifacts'
-#     inputs:
-#       path: $(System.DefaultWorkingDirectory)/wheelhouse
-#       artifact: macos-wheels
+- job: build_macos_wheels
+  pool: {vmImage: 'macos-latest'}
+  steps:
+  - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7'}}
+
+  - task: PythonScript@0
+    displayName: 'Build and test MacOS wheels'
+    inputs:
+      scriptPath: ./ci/azure-build.py
+      arguments: cibw-outer
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Upload built artifacts'
+    inputs:
+      path: $(System.DefaultWorkingDirectory)/wheelhouse
+      artifact: macos-wheels
 
 - job: build_windows_wheels
   pool: {vmImage: 'vs2017-win2016'}

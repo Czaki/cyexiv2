@@ -817,8 +817,10 @@ def libexiv2_is_already_available():
 
 
 def build_libexiv2_linux(args, sudo_install):
+    with tempfile.TemporaryDirectory() as td, \
+         working_directory(td), \
+         restore_environ():  # noqa: E126 - bug in flake8, indentation is fine
 
-    with tempfile.TemporaryDirectory() as td, working_directory(td):
         if libexiv2_is_already_available():
             return
 
@@ -835,12 +837,10 @@ def build_libexiv2_linux(args, sudo_install):
         builddir = os.path.join(EXIV2_SRC_DIR, "build")
         makedirs(builddir)
         chdir(builddir)
-        run([
-            cmake, "..",
-            "-DCMAKE_BUILD_TYPE=Release",
-            ("-DEXTRA_COMPILE_FLAGS="
-             "-DSUPPRESS_WARNINGS -Wno-deprecated-declarations")
-        ])
+
+        setenv("CFLAGS", "-DSUPPRESS_WARNINGS")
+        setenv("CXXFLAGS", "-DSUPPRESS_WARNINGS -Wno-deprecated-declarations")
+        run([cmake, "..", "-DCMAKE_BUILD_TYPE=Release"])
         run([cmake, "--build", "."])
         run(["make", "tests"])
         if sudo_install:
@@ -850,7 +850,10 @@ def build_libexiv2_linux(args, sudo_install):
 
 
 def build_libexiv2_macos():
-    with tempfile.TemporaryDirectory() as td, working_directory(td):
+    with tempfile.TemporaryDirectory() as td, \
+         working_directory(td), \
+         restore_environ():  # noqa: E126 - bug in flake8, indentation is fine
+
         # Ensure use of matching minimum OSX version and C++ runtime as
         # for the module itself.
         setenv("MACOSX_DEPLOYMENT_TARGET", "10.9")
@@ -865,11 +868,9 @@ def build_libexiv2_macos():
         makedirs(builddir)
         chdir(builddir)
 
-        run([
-            "cmake", "..", "-DCMAKE_BUILD_TYPE=Release",
-            ("-DEXTRA_COMPILE_FLAGS="
-             "-DSUPPRESS_WARNINGS -Wno-deprecated-declarations")
-        ])
+        setenv("CFLAGS", "-DSUPPRESS_WARNINGS")
+        setenv("CXXFLAGS", "-DSUPPRESS_WARNINGS -Wno-deprecated-declarations")
+        run(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
         run(["cmake", "--build", "."])
         run(["make", "tests"])
         run(["make", "install"])
@@ -898,15 +899,14 @@ def build_libexiv2_windows():
         run(["conan", "install", "..", "--build", "missing",
              "-pr="+conan_profile])
 
-        setenv("EXIV2_EXT", ".exe")
-
-        run([
-            "cmake", "..",
-            "-DCMAKE_BUILD_TYPE=Release",
-            "-DEXTRA_COMPILE_FLAGS=/DSUPPRESS_WARNINGS"
-        ])
+        setenv("CFLAGS", "/DSUPPRESS_WARNINGS")
+        setenv("CXXFLAGS", "/DSUPPRESS_WARNINGS")
+        run(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
         run(["cmake", "--build", "."])
+
+        setenv("EXIV2_EXT", ".exe")
         run(["cmake", "--build", ".", "--target", "tests"])
+
         run(["cmake", "--build", ".", "--target", "INSTALL"])
 
 
