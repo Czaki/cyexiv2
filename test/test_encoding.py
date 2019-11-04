@@ -51,8 +51,13 @@ def test_read_from_filename(tempdir, filename):
     if isinstance(filename, bytes):
         tempdir = tempdir.encode("ascii")
     filepath = os.path.join(tempdir, filename)
-    with open(filepath, 'wb') as fd:
-        fd.write(UNUSUAL_JPG_DATA)
+    try:
+        with open(filepath, 'wb') as fd:
+            fd.write(UNUSUAL_JPG_DATA)
+    except OSError as e:
+        # The OS might not let us create files with some of the above names.
+        pytest.skip("could not create test file: " + str(e))
+
     m = ImageMetadata(filepath)
     m.read()
     assert m['Exif.Image.DateTime'].value.isoformat() == UNUSUAL_JPG_DATETIME
