@@ -902,7 +902,12 @@ def build_libexiv2_windows():
 
         setenv("CFLAGS", "/DSUPPRESS_WARNINGS")
         setenv("CXXFLAGS", "/DSUPPRESS_WARNINGS")
-        run(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
+
+        # there's no equivalent of auditwheel or delocate for windows
+        # at the moment, so build a static library only, so the extension
+        # module will be self-contained
+        run(["cmake", "..",
+             "-DCMAKE_BUILD_TYPE=Release", "-DBUILD_SHARED_LIBS=OFF"])
         run(["cmake", "--build", "."])
 
         setenv("EXIV2_EXT", ".exe")
