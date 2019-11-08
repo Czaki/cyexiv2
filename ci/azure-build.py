@@ -853,8 +853,8 @@ def build_libexiv2_macos():
 
         # Ensure use of matching minimum OSX version and C++ runtime as
         # for the module itself.
-        setenv("MACOSX_DEPLOYMENT_TARGET", "10.9")
-        setenv("CXX", "clang++ -std=c++11 -stdlib=libc++")
+        # setenv("MACOSX_DEPLOYMENT_TARGET", "10.9")
+        # setenv("CXX", "clang++ -std=c++11 -stdlib=libc++")
 
         if libexiv2_is_already_available():
             return
@@ -870,6 +870,7 @@ def build_libexiv2_macos():
 
         setenv("CFLAGS", "-DSUPPRESS_WARNINGS")
         setenv("CXXFLAGS", "-DSUPPRESS_WARNINGS -Wno-deprecated-declarations")
+        setenv("CMAKE_OSX_DEPLOYMENT_TARGET", '10.9')
         run(["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"])
         run(["cmake", "--build", "."])
         run(["make", "tests"])
@@ -1091,6 +1092,7 @@ def cibuildwheel_outer(args):
     elif sysname == "Darwin":
         # delocate won't find libexiv2.dylib without this
         S("CIBW_ENVIRONMENT", "DYLD_LIBRARY_PATH=/usr/local/lib")
+        S("MACOSX_DEPLOYMENT_TARGET", "10.9")
 
     elif sysname == "Windows":
         S("CIBW_ENVIRONMENT",

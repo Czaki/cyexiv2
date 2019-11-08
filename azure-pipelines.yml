@@ -5,6 +5,7 @@
 
 trigger:
 - trunk
+- azure_test2
 
 jobs:
 - job: build_sdist
