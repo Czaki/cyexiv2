@@ -6,6 +6,9 @@
 trigger:
 - trunk
 
+variables:
+  MACOSX_DEPLOYMENT_TARGET: "10.9"
+
 jobs:
 - job: build_sdist
   pool: {vmImage: 'ubuntu-latest'}

@@ -853,8 +853,8 @@ def build_libexiv2_macos():
 
         # Ensure use of matching minimum OSX version and C++ runtime as
         # for the module itself.
-        setenv("MACOSX_DEPLOYMENT_TARGET", "10.9")
-        setenv("CXX", "clang++ -std=c++11 -stdlib=libc++")
+        # setenv("MACOSX_DEPLOYMENT_TARGET", "10.9")
+        # setenv("CXX", "clang++ -std=c++11 -stdlib=libc++")
 
         if libexiv2_is_already_available():
             return

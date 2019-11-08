@@ -55,7 +55,7 @@ def extra_compile_args():
     if sysname == "Linux":
         return ["-std=c++11", "-fdebug-prefix-map="+TOPSRCDIR+"=."]
     elif sysname == "Darwin":
-        return ["-std=c++11", "-stdlib=libc++", "-mmacosx-version-min=10.9",
+        return ["-std=c++11",
                 "-Wno-deprecated-declarations",
                 "-fdebug-prefix-map="+TOPSRCDIR+"=."]
     elif sysname == "Windows":
